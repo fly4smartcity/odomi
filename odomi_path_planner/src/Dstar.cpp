@@ -8,7 +8,7 @@
 
 using namespace cv;
 
-
+int timesYouCallMe = 0 ;
 /* void Dstar::Dstar()
  * --------------------------
  * Constructor sets constants.
@@ -613,6 +613,7 @@ list<waypoint> Dstar::getWaypoints()
   list<state>::iterator innerIter;
 
   waypoints.clear();
+  timesYouCallMe++;
   int count=0;
   for(iter=path.begin(); iter != path.end() && count++<path.size(); iter++) {
         
@@ -620,7 +621,8 @@ list<waypoint> Dstar::getWaypoints()
       wp.x=iter->x; wp.y=iter->y; wp.radius = distObstacles.at<float>(iter->y,iter->x);
       waypoints.push_back(wp);
     
-        printf("Waypoint #%d, x: %d y: %d radius: %d\n",waypoints.size(),wp.x,wp.y, wp.radius);
+        printf("Waypoint #%d, x: %d y: %d radius: %d\n ",waypoints.size(),wp.x,wp.y, wp.radius);
+	printf("times you call me %d\n ",timesYouCallMe);
 
       int currx=iter->x;
       int curry=iter->y;

@@ -1,9 +1,10 @@
-/* based on DstarDraw.cpp by James Neufeld (neufeld@cs.ualberta.ca)
- * Author: Stefano Rosa
- * @TODO: dimensions of the map, get map from ros, put everything in world coordinates,
- *        add costs to cells, publish waypoints  
- * 
- */
+// based on DstarDraw.cpp by James Neufeld (neufeld@cs.ualberta.ca)
+// Author: Stefano Rosa
+// @TODO: dimensions of the map, get map from ros, put everything in world coordinates,
+//        add costs to cells, publish waypoints  
+// 
+//
+
 
 #include "ros/ros.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -11,6 +12,8 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include <unistd.h>
 #include "odomi_path_planner/Dstar.h"
+#include "mission_planner_msgs/CoordinateArray.h"
+#include "mission_planner_msgs/Coordinate.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/core/core.hpp"
@@ -20,6 +23,8 @@
 using namespace cv;
 
 int hh, ww;
+bool ok = true;
+
 
 int window; 
 Dstar *dstar;
@@ -32,7 +37,10 @@ bool b_autoreplan = false;
 
 int inflation=5;
 
+// things to pub wp
 
+list<waypoint> returned_wp;
+ros::Publisher wp_pub;
 
 // map info
   float resolution;
@@ -45,12 +53,12 @@ int inflation=5;
 void main_loop()
 {
 
-  while(1)
+  while(ros::ok())
   {
     if (b_autoreplan) 
       {
         dstar->replan();
-        dstar->getWaypoints();
+        //dstar->getWaypoints();
       }
 
     Mat result=dstar->draw(scale);
@@ -80,6 +88,43 @@ void main_loop()
   }
 }
 
+void main_op()
+{
+while(ros::ok())
+  {
+    if (b_autoreplan) 
+      {
+        dstar->replan();
+        //dstar->getWaypoints();
+      }
+
+    Mat result=dstar->draw(scale);
+    if(result.cols>0 && result.rows>0)
+      imshow("ODOMI",result);
+    /*char key=cvWaitKey(10);
+    switch(key) {
+    case 'q':
+    case 'Q':
+     destroyAllWindows();
+      exit(0);
+      break;
+    case 'r':
+    case 'R':
+      dstar->replan();
+      break;
+    case 'a':
+    case 'A':
+      b_autoreplan = !b_autoreplan;
+      break;
+    case 'c':
+    case 'C':
+      dstar->init(40,50,140, 90);
+      break;
+    }*/
+dstar->init(0,0,140, 90);
+    ros::spinOnce();
+  }
+}
 
 
 void mouseFunc(int event, int x, int y, int flags, void* userdata)
@@ -89,14 +134,14 @@ void mouseFunc(int event, int x, int y, int flags, void* userdata)
           cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
           dstar->updateStart(x/scale, y/scale);
            dstar->replan();
-        dstar->getWaypoints();
+        //dstar->getWaypoints();
      }
      else if  ( event == EVENT_RBUTTONDOWN )
      {
           cout << "Right button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
           dstar->updateGoal(x/scale, y/scale);
            dstar->replan();
-        dstar->getWaypoints();
+        //dstar->getWaypoints();
      }
      else if  ( event == EVENT_MBUTTONDOWN )
      {
@@ -110,43 +155,6 @@ void mouseFunc(int event, int x, int y, int flags, void* userdata)
 }
 
 
-// void mouseFunc(int button, int state, int x, int y) {
-  
-//   // y = hh -y+scale/2;
-//   // x += scale/2;
-
-//   // mbutton = button;
-
-//   // if ((mstate = state) == GLUT_DOWN) {
-//   //   if (button == GLUT_LEFT_BUTTON) {
-//   //     dstar->updateCell(x/scale, y/scale, -1); //-1
-//   //   } else if (button == GLUT_RIGHT_BUTTON) {
-//   //     dstar->updateStart(x/scale, y/scale);
-//   //   } else if (button == GLUT_MIDDLE_BUTTON) {
-//   //     dstar->updateGoal(x/scale, y/scale);
-//   //   }
-//   // }
-// }
-
-// void mouseMotionFunc(int x, int y)  {
-
-//   // y = hh -y+scale/2;
-//   // x += scale/2;
-  
-//   // y /= scale;
-//   // x /= scale;
-  
-//   // if (mstate == GLUT_DOWN) {
-//   //   if (mbutton == GLUT_LEFT_BUTTON) {
-//   //     dstar->updateCell(x, y, -1);
-//   //   } else if (mbutton == GLUT_RIGHT_BUTTON) {
-//   //     dstar->updateStart(x, y);
-//   //   } else if (mbutton == GLUT_MIDDLE_BUTTON) {
-//   //     dstar->updateGoal(x, y);
-//   //   }
-//   // }
-
-// }
 
 void loadBuildings(string filename)
 {
@@ -161,21 +169,6 @@ int morph_size = inflation;
  
   dstar->setObstacles(buildings);
 
-// //imshow("build",buildings); cvWaitKey(0);
-//   for(int i=0;i<buildings.cols;i++)
-//       for(int j=0;j<buildings.rows;j++)
-//       {
-//         int x=i; int y=j;
-//   // y = hh -y+scale/2;
-//   // x += scale/2;
-  
-//   // y /= scale;
-//   // x /= scale;
-  
-//   unsigned char cost= buildings.at<unsigned char>(j,i);  
-//   if(cost<100)
-//       dstar->updateCell(x, y, -1);
-//   }
 }
 
 void loadLte(string filename)
@@ -224,6 +217,7 @@ void loadLteObstacles(string filename)
   }
 }
 
+
 void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
 {
   cout << "###received map\n";
@@ -269,45 +263,20 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
     }  
 
 
-
-
-
-
-    //threshold( buildings, buildings, 100, 255,0 );
-
-//   int morph_elem = MORPH_ELLIPSE;
-// int morph_size = inflation;
-//   Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
-//     morphologyEx( buildings, buildings, 0, element );
- 
-//   dstar->setObstacles(buildings);
-
-// //imshow("build",buildings); cvWaitKey(0);
-//   for(int i=0;i<buildings.cols;i++)
-//       for(int j=0;j<buildings.rows;j++)
-//       {
-//         int x=i; int y=j;
-//   // y = hh -y+scale/2;
-//   // x += scale/2;
-  
-//   // y /= scale;
-//   // x /= scale;
-  
-//   unsigned char cost= buildings.at<unsigned char>(j,i);  
-//   if(cost<100)
-//       dstar->updateCell(x, y, -1);
-//   }
 }
 
 
 void receiveGoal(const boost::shared_ptr<const geometry_msgs::PoseStamped> goal)
 {
+
+  mission_planner_msgs::CoordinateArray wp;
+  mission_planner_msgs::Coordinate      wp_coordinate;
   geometry_msgs::Point position = goal->pose.position;
   geometry_msgs::Quaternion orientation = goal->pose.orientation;
   cout << "###received goal (position): " << position.x << ' ' << position.y << ' ' << position.z << endl;
   cout << "###received goal (orientation): " << orientation.x << ' ' << orientation.y << ' ' << orientation.z << ' ' << orientation.w <<endl;
   //cout << "convert to angle" << 2 * acos(orientation.w) << endl;
-  tf::TransformListener listener;
+  /*tf::TransformListener listener;
 
   tf::StampedTransform transform;
   try{
@@ -316,17 +285,98 @@ void receiveGoal(const boost::shared_ptr<const geometry_msgs::PoseStamped> goal)
   }
   catch (tf::TransformException ex){
   ROS_ERROR("Robot pose not available: %s",ex.what());
-  }
+  }*/
 
 
   //dstar->updateStart(100,100);
-  dstar->updateGoal((position.x - origin.position.x)/scale/resolution, height/scale-(position.y - origin.position.y)/scale/resolution);
+  //dstar->updateGoal((position.x - origin.position.x)/scale/resolution, height/scale-(position.y - origin.position.y)/scale/resolution);
+  
+
+  while(ok){
+
+  dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
   dstar->replan();
-  dstar->getWaypoints();
+
+  // list<waypoints> 
+  
+  returned_wp = dstar->getWaypoints();
+  ROS_INFO ("returned_wp %d\n ",returned_wp.size());
+
+  //Is it the right path ? 
+  if(returned_wp.size() < 3) 
+  {
+   
+   ROS_INFO ("---Goal not good replanning -----\n ");
+
+   //position.x = 
+   position.y = position.y +10; 
+
+
+  } else ok = false;
+
+  }
+
+ /*  
+  
+  dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
+  dstar->replan();
+
+  // list<waypoints> 
+  
+  returned_wp = dstar->getWaypoints();
+  
+*/
+
+
+  std::list<waypoint>::const_iterator iterator;
+
+  for(iterator = returned_wp.begin(); iterator != returned_wp.end(); ++iterator)
+  {
+  wp_coordinate.latitude = (*iterator).y;
+  wp_coordinate.longitude = (*iterator).x;
+
+  printf("wp lat %f wp lng %f\n", wp_coordinate.latitude, wp_coordinate.longitude);
+
+  wp.waypoint.push_back(wp_coordinate);
+  }
+  
+
+
+  wp_pub.publish(wp);
+
+
+  }
+
+
+void receiveStart(const boost::shared_ptr<const geometry_msgs::PoseStamped> start)
+{
+  geometry_msgs::Point position = start->pose.position;
+  geometry_msgs::Quaternion orientation = start->pose.orientation;
+  cout << "###received start (position): " << position.x << ' ' << position.y << ' ' << position.z << endl;
+  cout << "###received start (orientation): " << orientation.x << ' ' << orientation.y << ' ' << orientation.z << ' ' << orientation.w <<endl;
+  //cout << "convert to angle" << 2 * acos(orientation.w) << endl;
+  /*tf::TransformListener listener;
+
+  tf::StampedTransform transform;
+  try{
+   listener.lookupTransform("/map", "/base_link",
+                            ros::Time(0), transform);
+  }
+  catch (tf::TransformException ex){
+  ROS_ERROR("Robot pose not available: %s",ex.what());
+  }*/
+
+
+  //dstar->updateStart(100,100);
+//  dstar->updateStart((position.x - origin.position.x)/scale/resolution, height/scale-(position.y - origin.position.y)/scale/resolution);
+  dstar->updateStart(position.x/scale/resolution,position.y/scale/resolution);
+  dstar->replan();
+  //dstar->getWaypoints();
 
 
 
 }
+
 
 
 int main(int argc, char **argv) {
@@ -366,12 +416,17 @@ setMouseCallback("ODOMI", mouseFunc, NULL);
   dstar = new Dstar();
   dstar->init(30,50,100, 90);
   
-  ros::Subscriber goal_sub = nh.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 2,  receiveGoal);
-  ros::Subscriber obstacles_sub = nh.subscribe<nav_msgs::OccupancyGrid>("/map", 2,  receiveMap);
+  ros::Subscriber goal_sub = nh.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1,  receiveGoal);
+  ros::Subscriber start_sub = nh.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/start", 1,  receiveStart);
+  ros::Subscriber obstacles_sub = nh.subscribe<nav_msgs::OccupancyGrid>("/map", 2,  receiveMap); //mission map
+
+  // publish waypoints
+  wp_pub = nh.advertise<mission_planner_msgs::CoordinateArray>("/2mp_wp", 2,true);
+												//dynamic map (sum of the two)
 
   //loadLteObstacles("lte.jpg");
   //loadBuildings("/home/stefano/ros_workspace/odomi_path_planner/salaD1.pgm");
-
+/*
   printf("----------------------------------\n");
   printf("ODOMI Path Planner\n");
   printf("Commands:\n");
@@ -382,10 +437,11 @@ setMouseCallback("ODOMI", mouseFunc, NULL);
   printf("left mouse click - make cell untraversable (cost -1)\n");
   printf("middle mouse click - move goal to cell\n");
   printf("right mouse click - move start to cell\n");
-  printf("----------------------------------\n");
+  printf("----------------------------------\n");*/
 
   //glutMainLoop();  
 
-  main_loop();
+ main_loop();
+   //main_op();
   return 1;
 }

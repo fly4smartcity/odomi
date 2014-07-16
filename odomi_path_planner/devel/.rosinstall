@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/sgabello/sgabello_ros_ws/sandbox/odomi_path_planner/devel/setup.sh
