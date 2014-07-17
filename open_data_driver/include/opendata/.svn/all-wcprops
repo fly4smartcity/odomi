@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/opendata
+END
+PotenzaSegnale.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/opendata/PotenzaSegnale.h
+END
+Weather.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/opendata/Weather.h
+END
+Geoportale.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/opendata/Geoportale.h
+END
+ogr_geos.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/opendata/ogr_geos.h
+END
+Trasporti.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/opendata/Trasporti.h
+END
+Traffico.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/opendata/Traffico.h
+END

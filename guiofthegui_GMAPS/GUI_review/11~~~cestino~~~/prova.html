@@ -1,0 +1,82 @@
+<html>
+<head>
+    <style type="text/css">
+        html::-moz-selection{
+            background-color:Transparent;
+        }
+
+        html::selection {
+            background-color:Transparent;
+        }
+        img.n {position:absolute; top:0px; width:5px; height:10px;}
+        img.e {position:absolute; right:0px; width:10px; height:5px;}
+        img.s {position:absolute; bottom:0px; width:5px; height:10px;}
+        img.w {position:absolute; left:0px; width:10px; height:5px;}
+        #canvas {
+            width:300px;
+            height:300px;
+            background-color:black;
+            position:relative;
+        }
+    </style>
+    <script type="text/javascript">
+    nmecount=0
+        function play(){
+            spawn()
+            var t=setTimeout("play()",1000);
+        }
+        function spawn(){
+            var random=Math.floor(Math.random()*290)
+            var side=Math.floor(Math.random()*5)
+            var name=1
+            var z=10000
+            if (side=1)
+            {
+            var nme = document.createElement('img');
+            nme.setAttribute('src', '1.png');
+            nme.setAttribute('class', 'n');
+            nme.setAttribute('id', name);
+            nme.setAttribute('style', 'left:'+random+'px;');
+            nme.onload = moveS;
+            document.getElementById("canvas").appendChild(nme);
+            }
+            if (side=2)
+            {
+            var nme = document.createElement('img');
+            nme.setAttribute('src', '1.png');
+            nme.setAttribute('class', 'e');
+            nme.setAttribute('id', name);
+            nme.setAttribute('style', 'top:'+random+'px;');
+            nme.onload = moveW;
+            document.getElementById("canvas").appendChild(nme);
+            }
+            if (side=3)
+            {
+            var nme = document.createElement('img');
+            nme.setAttribute('src', '1.png');
+            nme.setAttribute('class', 's');
+            nme.setAttribute('id', name);
+            nme.setAttribute('style', 'left:'+random+'px;');
+            nme.onload = moveN;
+            document.getElementById("canvas").appendChild(nme);
+            }
+            if (side=4)
+            {
+            var nme = document.createElement('img');
+            nme.setAttribute('src', '1.png');
+            nme.setAttribute('class', 'w');
+            nme.setAttribute('id', name);
+            nme.setAttribute('style', 'top:'+random+'px;');
+            nme.onload = moveE;
+            document.getElementById("canvas").appendChild(nme);
+            }
+        name=name+1
+        }
+    </script>
+</head>
+<body onLoad="play()">
+<div id="canvas">
+<img id="a" src="1.png" style="position:absolute; z-index:5; left:150px; top:150px; height:10px; width=10px;" />
+<button onclick="moveleft()"><</button>
+</body>
+</html>

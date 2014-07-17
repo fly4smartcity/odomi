@@ -1,0 +1,10 @@
+Header header
+string name
+string type_name
+Coordinate home
+Move[] movements
+string[] slot_names
+uint8 SAFE=0
+uint8 NORMAL=1
+uint8 AGGRESSIVE=2
+uint8 travel_mode

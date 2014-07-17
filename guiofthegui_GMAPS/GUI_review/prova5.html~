@@ -1,0 +1,236 @@
+<!-- http://jsfiddle.net/geekambassador/a6ekn/ -->
+<!--html>
+<head>
+<style>
+
+	#scroller {
+background-color: #424242;
+padding-left: 40px;
+height: 50px;
+width: 400px;
+background-image: url(beachbanner.jpg);
+background-repeat: repeat-x;
+} 
+
+
+</style>
+
+
+
+
+</head>
+<body>
+
+
+
+
+	<div id="scroller"> </div> 
+
+<script language="javascript">
+
+function StartMove() {
+var cssBGImage=new Image();
+cssBGImage.src="path to your image.jpg";
+
+window.cssMaxWidth=cssBGImage.width;
+window.cssXPos=0;
+setInterval("MoveBackGround()",50);
+}
+
+function MoveBackGround () {
+window.cssXPos=window.cssXPos+1;
+if (window.cssXPos>=window.cssMaxWidth) {
+window.cssXPos=0;
+}
+toMove=document.getElementById("scroller");
+toMove.style.backgroundPosition=window.cssXPos+"px 0px";
+
+}
+</script>
+</body>
+</html-->
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><!-- InstanceBegin template="/Templates/dstemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- InstanceBeginEditable name="doctitle" -->
+<title>CSS Scrolling Background (using a little Javascript)</title>
+<script language="javascript">
+
+function StartMove() {
+var cssBGImage=new Image();
+cssBGImage.src="beachbanner.jpg";
+//alert ("width is: "+bgImage.width);
+window.cssMaxWidth=cssBGImage.width; 
+window.cssXPos=0;
+setInterval("MoveBackGround()",50);
+}
+
+function MoveBackGround () {
+	
+	
+	window.cssXPos=window.cssXPos+1;
+	if (window.cssXPos>=window.cssMaxWidth) {
+		window.cssXPos=0;
+	}
+	toMove=document.getElementById("scroller");
+	toMove.style.backgroundPosition=window.cssXPos+"px 0px";
+	//showPos.innerHTML=xpo;
+}
+</script>
+<!-- InstanceEndEditable -->
+<script type="text/javascript" src="ScriptLibrary/jquery-latest.pack.js"></script>
+<script type="text/javascript" src="ScriptLibrary/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="ScriptLibrary/jquery.dmxzone_animations_pack.js"></script>
+<script type="text/javascript" src="ScriptLibrary/jquery.csstransform.pack.js"></script>
+<link rel="stylesheet" type="text/css" href="Styles/dmxNavigationMenu.css" />
+<link rel="stylesheet" type="text/css" href="Styles/dmxNavigationMenu/elegant_blue/elegant_blue.css" />
+<script type="text/javascript" src="ScriptLibrary/dmxNavigationMenu.js"></script>
+<!--[if lt IE 7]><script type="text/javascript" src="../Styles/IE7.js"></script><![endif]-->
+<!-- InstanceBeginEditable name="head" -->
+<!--[if lt IE 7]><script type="text/javascript" src="Styles/IE7.js"></script><![endif]-->
+<!-- InstanceEndEditable -->
+<!--[if lte IE 6]>
+<script type="text/javascript" src="../Scripts/supersleight-min.js"></script>
+<![endif]-->
+<link href="dssnew.css" rel="stylesheet" type="text/css" />
+<link rel="icon" href="favicon.ico" type="image/x-icon" />
+<meta name="Description" content="Dynamic Sights provides custom Internet solutions.  Services include Mobile site design, custom databases, shopping cart set-up and complete web site design." />
+<meta name="Keywords" content="php, programming, database design, web site design, website design, video editing, ajax, document management, project managment, graphic design, 3d graphics, 3d animation" />
+<!-- InstanceParam name="body onload" type="text" value="StartMove();" -->
+<script type="text/javascript">
+<!--
+function dmxAnimate() {//v1.0 
+  jQuery.dmxAnimate.apply(this, arguments);
+}
+//-->
+</script>
+</head>
+
+<body onload="StartMove();" >
+
+ 
+ <img src="images/goldlogo.png" alt="Dynamic Sights Provides custom Internet Solutions " width="662" height="93" /></div>
+
+<div id="main">
+  <!-- InstanceBeginEditable name="body" -->
+  <div id="scroller">
+    <img src="images/beachtitle.png" width="230" height="100" alt="Transparent Image" /></div>
+  
+<p>Notice the image scrolling above?  This is done with a simple Javascript and CSS... and a transparent PNG on top.</p>
+<p>This is not a pure CSS solution, since it does require some JavaScript, however, the amount of scripting needed is minimal.</p>
+  <p>First, start with series of images and stitch them together in your favorite program. I use Adobe Illustrator, mainly because it is much more convenient to work with a document with a large number of layers.</p>
+  <p><img src="images/beachbanner_sm.jpg" width="700" height="59" /></p>
+  <p>Next, create a web page and create a div and give it the ID of scroller.</p>
+  <div class="codeSample">&lt;div id=&quot;scroller&quot;&gt;    &lt;/div&gt; </div>
+  <p>Now Create the CSS Style for this Div.  I hard coded the height, but you don't really have to.</p>
+  <div class="codeSample">#scroller {<br />
+background-color: #424242;<br />
+padding-left: 40px;<br />
+height: 150px;<br />
+background-image: url(beachbanner.jpg);<br />
+background-repeat: repeat-x;<br />
+} </div>
+  <p>Next, create two JavaScript Functions. I create global values for the image size and image start position (by attaching the variables to the Window Object). If you prefer, you can pass the items as parameters to the MoveBackGround function, although I always hated juggling the parentheses. Also, it is always better to use an external JavaScript File, but sometimes I just don't bother, especially during testing. </p>
+  <p>At the end of the StartMove() function you make a setInterval() call to the MoveBackground() Function. With setInterval(), you tell JavaScript to run a specific function every x milliseconds (1 millisecond=1000 seconds). So the MoveBackGround function runs every 50 milliseconds.</p>
+  <p>The MoveBackGround function is the simple code that moves the background and then resets it back to 0 when the width (window.cssmaxWidth) is reached.</p>
+  <div class="codeSample">
+    <p>&lt;script language=&quot;javascript&quot;&gt;</p>
+    <p>function StartMove() {<br />
+      var cssBGImage=new Image();<br />
+      cssBGImage.src=&quot;path to your image.jpg&quot;;<br />
+      <br />
+      window.cssMaxWidth=cssBGImage.width;<br />
+      window.cssXPos=0;<br />
+      setInterval(&quot;MoveBackGround()&quot;,50);<br />
+      }</p>
+    <p>function MoveBackGround () {<br />
+      window.cssXPos=window.cssXPos+1;<br />
+      if (window.cssXPos&gt;=window.cssMaxWidth) {<br />
+      window.cssXPos=0;<br />
+      }<br />
+      toMove=document.getElementById(&quot;scroller&quot;);<br />
+      toMove.style.backgroundPosition=window.cssXPos+&quot;px 0px&quot;;<br />
+      <br />
+      }<br />
+  &lt;/script&gt;</p>
+  </div>
+  <p>Lastly, you need to attach the code below to your body onload event (or any image load if you prefer). IF you attach it to an image, make sure the image loads before the Div.</p>
+  <div class="codeSample">&lt;body onload=&quot;StartMove()&quot;&gt;
+  
+  </div>
+  <p>Finally, if you want, you can place an image over the scrolling background.  Again, I use Illustrator to create a layered Image.  I create the background (the yellow shape) and set the transparency to 45%.  Then I add the text at full opacity (100%).  I save the whole thing as a transparent PNG-24.</p>
+  <!-- InstanceEndEditable -->
+</div>
+<div id="sidebar">
+<div id="pgTitle">
+<!-- InstanceBeginEditable name="title" -->Scrolling CSS Background<!-- InstanceEndEditable -->
+</div>
+<div id="mainMenu" class="dmxNavigationMenu elegant_blue" style="width:125px">
+  <ul class="menu elegant_blue vertical">
+    <li title="Home"><a href="index.htm">Home</a></li>
+    <li title="Services"><a href="internet.html">Services</a></li>
+    <li title="Projects"><a href="projects.html">Projects</a></li>
+    <li title="Websites"><a href="javascript:void(0);" class="expandable">Websites<span class="sub_right"></span></a>
+      <ul class="sub">
+        <li title="Customer Gallery"><a href="customers.htm">Customer Gallery</a></li>
+        <li title="Content Management"><a href="contentmanage.html">Content Management</a></li>
+        <li title="Mobile Websites"><a href="mobile.html">Mobile Websites</a></li>
+      </ul>
+    </li>
+    <li title="Gallery"><a href="galleries/gallery.html">Gallery</a></li>
+    <li title="Web Tricks"><a href="javascript:void(0);" class="expandable">Web Tricks<span class="sub_right"></span></a>
+      <ul class="sub">
+        <li title="CSS &amp; HTML"><a href="javascript:void(0);" class="expandable">CSS &amp; HTML<span class="sub_right"></span></a>
+          <ul class="sub">
+            <li title="HTML5 Audio"><a href="how2audio.php">HTML5 Audio</a></li>
+            <li title="CSS Color Cycle"><a href="csscolorcycle.html">CSS Color Cycle</a></li>
+            <li title="CSS Sliding Title"><a href="slidein.html">CSS Sliding Title</a></li>
+            <li title="Transparency Rollovers"><a href="css_transparent.html">Transparency Rollovers</a></li>
+            <li title="Side by Side Divs"><a href="sidebyside.php">Side by Side Divs</a></li>
+            <li title="Scrolling Background Image"><a href="cssscrollback.php">Scrolling Background Image</a></li>
+          </ul>
+        </li>
+        <li title="JavaScript"><a href="nojavascript.html" class="expandable">JavaScript<span class="sub_right"></span></a>
+          <ul class="sub">
+            <li title="Detecting Disabled JS"><a href="nojavascript.html">Detecting Disabled JS</a></li>
+            <li title="Dynamic Copyright Date"><a href="copyrightjs.html">Dynamic Copyright Date</a></li>
+          </ul>
+        </li>
+        <li title="Illustrator"><a href="javascript:void(0);" class="expandable">Illustrator<span class="sub_right"></span></a>
+          <ul class="sub">
+            <li title="Photographic Edges"><a href="illus_photoedges.php">Photographic Edges</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li title="Contact Us"><a href="contact.html">Contact Us</a></li>
+  </ul>
+  <div style="height:0;font-size:0;clear:both;"></div>
+</div>
+<script type="text/javascript">
+  // <![CDATA[
+ jQuery(document).ready(
+   function()
+     {
+       jQuery("#mainMenu").dmxNavigationMenu(
+         {"width": 125, "mainShowDuration": "normal", "mainShowEasing": "swing", "mainHideDuration": "normal", "mainHideEasing": "swing", "subShowDuration": "normal", "subShowEasing": "swing", "subHideDuration": "normal", "subHideEasing": "swing", "menuOrientation": "vertical", "design": "elegant_blue", "useMenuBarSearch": false, "keyboard": true, "menuWidth": 200}
+       );
+     }
+ );
+  // ]]>
+</script>
+</div>
+<div id="footer">
+<p>Dynamic Sights Web Site Design and Management<br />
+      609.707.1807<br />
+      <a href="mailto:info@dynamicsights.com" class="darklink">info@dynamicsights.com</a></p>
+</div>
+
+</div>
+<div id="copyRight">&copy;2013 Dynamic Sights  </div>
+</body>
+<!-- InstanceEnd --></html>

@@ -1,0 +1,7 @@
+geometry_msgs/Polygon bounding_box
+string label
+uint8 TYPE_STATIC=0
+uint8 TYPE_DYNAMIC=1
+uint8 type
+---
+bool resp

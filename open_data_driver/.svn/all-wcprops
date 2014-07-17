@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/CMakeLists.txt
+END
+package.xml
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/package.xml
+END
+open_data.yaml
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/open_data.yaml
+END

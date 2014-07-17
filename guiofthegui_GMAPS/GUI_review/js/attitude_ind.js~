@@ -1,0 +1,1 @@
+var attitudeindicator = new AttitudeIndicator('.attitude_indicator');

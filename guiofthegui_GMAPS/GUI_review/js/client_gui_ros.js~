@@ -1,0 +1,68 @@
+/* reference
+ http://wiki.ros.org/roslibjs/Tutorials/BasicRosFunctionality
+*/
+function call_srv(lat,lng)
+{
+  // Connecting to ROS
+  // -----------------
+  var ros = new ROSLIB.Ros({
+    url : 'ws://localhost:9090'
+  });
+  var targetClient = new ROSLIB.Service({
+    ros : ros,
+    name : '/target',
+    serviceType : 'gui_msg/Mission_Planner'
+  });
+
+  var request = new ROSLIB.ServiceRequest({
+    latitude : lat,
+    longitude : lng
+  });
+
+  targetClient.callService(request, function(result) {
+    /*alert('Result for service call on '
+      + targetClient.name
+      + ': '
+      + result.res);*/    
+  });  
+}
+
+function multi_srv(m_lat,m_lng)
+{
+  // Connecting to ROS
+  // -----------------
+  var ros = new ROSLIB.Ros({
+    url : 'ws://localhost:9090'
+  });
+  var targetClient = new ROSLIB.Service({
+    ros : ros,
+    name : '/multitarget',
+    serviceType : 'gui_msg/Mission_Planner'
+  });
+
+  if(m_lat.length>=1 && m_lng.length>=1)
+  {
+  
+
+
+  var request = new ROSLIB.ServiceRequest({
+
+
+    //latitude : lat,
+    //longitude : lng
+  });
+  
+    targetClient.callService(request, function(result) {
+    /*alert('Result for service call on '
+      + targetClient.name
+      + ': '
+      + result.res);*/    
+  });  
+  
+	
+  }
+
+
+
+}
+

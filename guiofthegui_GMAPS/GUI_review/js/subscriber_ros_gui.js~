@@ -1,0 +1,159 @@
+  // Connecting to ROS
+  // -----------------
+
+  var ros = new ROSLIB.Ros({
+    url : 'ws://localhost:9090'
+  });
+
+  // Subscribing to a Topic
+  // ----------------------
+
+  var listener = new ROSLIB.Topic({
+    ros : ros,
+    name : '/sensor_packet',
+    messageType : 'gui_msg/SensorPacket'
+  });
+
+  listener.subscribe(function(message) {
+    //console.log('Received message on ' + listener.name + ': ' + message.data);
+    map.removeLayer(home);
+    map.removeLayer(drone);
+    map.addLayer(home);
+    map.addLayer(drone);
+
+/*********************
+modifico tutte le variabili che comandano ogni sigolo oggetto.
+SONO DICHIARATE NEL FOGLIO JS indicatori.js
+*************************/
+
+    // Attitude update
+    attitude.setRoll(message.roll_ang);
+    attitude.setPitch(message.pitch_ang);
+    
+    // Heading update
+    heading.setHeading(message.compass_heading);
+    
+    // Vario update
+    //variometer.setVario(2*Math.sin(increment/10));//message.variometer
+    
+    // Airspeed update
+    //airspeed.setAirSpeed(80+80*Math.sin(increment/10));
+    
+    // Altimeter update
+    altimeter.setAltitude(message.altimeter);
+    //altimeter.setPressure(1000+3*Math.sin(increment/50));
+
+
+
+
+    batteryLevel.value=message.battery;//batteria
+    batteryLevel.grow();
+
+    updateMarker(home,message.h_latit,message.h_longit);//sposto home
+    updateMarker(drone,message.c_latit,message.c_longit);//sposto drone
+    //drone.bringToFront();
+    updateMarker(goal,message.c_latit,message.longit);//sposto target
+
+/*
++"\nGPS1drone:\t"+message.GPS1drone+"\nGPS2drone:\t"+message.GPS2drone+"\nGPS1home:\t"+message.GPS1home+"\nGPS2home:\t"+message.GPS2home
+*/
+
+    //listener.unsubscribe();
+  });
+
+
+
+//subscribing per messaggi path
+  var listener_path = new ROSLIB.Topic({
+    ros : ros,
+    name : '/drone',
+    messageType : 'gui_msg/Drone'
+
+  });
+  
+  
+  listener_path.subscribe(function(message) {
+	
+	var Phome=new Object();
+	var path= new Array();
+	var Pgoal=new Object();
+	//REFRESH POINT 
+	map.removeLayer(home);
+    	map.removeLayer(goal);
+	erasePath(map,Vlayer);
+    	map.addLayer(home);
+    	map.addLayer(goal);
+	//CARICO LA HOME
+	Phome.lat=message.home.latitude;
+	Phome.lng=message.home.longitude;	
+	//CARICO IL PATH
+	var i;
+	for(i=0;i<message.gps_waypoint.length;i++)
+	{
+		path[i]=new Object();
+		path[i].lat=message.gps_waypoint[i].latitude;
+		path[i].lng=message.gps_waypoint[i].longitude;
+	}
+	//CARICO IL GOAL
+	Pgoal.lat=message.target_position.latitude;
+	Pgoal.lng=message.target_position.longitude;
+	//AGGIORNAMENTO PUNTI
+	updateMarker(home,Phome.lat,Phome.lng);//SPOSTO HOME
+	updateMarker(goal,Pgoal.lat,Pgoal.lng);//sposto GOAL
+	Vlayer=drawPath(map,path);//WAYPOINT
+/*
+var point=new Object();  
+  var path=new Array();//path del percorso
+//alert("pluto ");
+
+
+    point.lat=message.GPSLATHOME;
+    point.lng=message.GPSLNGHOME;
+    updateMarker(home,point.lat,point.lng);//SPOSTO HOME
+    updateMarker(drone,point.lat,point.lng);//sposto drone
+
+var i=0;
+    point.lat=message.GPSLATP1;
+    point.lng=message.GPSLNGP1;
+    path[i]= new Object();
+    path[i].lat=point.lat
+    path[i].lng=point.lng;
+    i++;
+    point.lat=message.GPSLATP2;
+    point.lng=message.GPSLNGP2;
+    path[i]= new Object();
+    path[i].lat=point.lat
+    path[i].lng=point.lng;;
+    i++;
+    point.lat=message.GPSLATP3;
+    point.lng=message.GPSLNGP3;
+    path[i]= new Object();
+    path[i].lat=point.lat
+    path[i].lng=point.lng;
+    i++;
+    point.lat=message.GPSLATP4;
+    point.lng=message.GPSLNGP4;
+    path[i]= new Object();
+    path[i].lat=point.lat
+    path[i].lng=point.lng;
+    i++;
+    point.lat=message.GPSLATP5;
+    point.lng=message.GPSLNGP5;
+    path[i]= new Object();
+    path[i].lat=point.lat
+    path[i].lng=point.lng;
+
+    point.lat=message.GPSLATGOAL;
+    point.lng=message.GPSLNGGOAL;
+    updateMarker(goal,point.lat,point.lng);//sposto goal
+
+
+for(i=0;i<5;i++)
+{
+  //alert("c i:"+i+" lat:"+path[i].lat+" lng:"+path[i].lng);
+}
+    Vlayer=drawPath(map,path);
+    //listener_path.unsubscribe();
+
+*/
+  });

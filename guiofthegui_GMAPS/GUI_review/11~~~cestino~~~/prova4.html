@@ -1,0 +1,44 @@
+<!-- http://jsfiddle.net/geekambassador/a6ekn/ -->
+<html>
+<head>
+<style>
+#bg{
+    width:300px;
+    height:100px;
+    background:url(http://lorempixel.com/output/transport-q-c-640-480-7.jpg);    
+}
+
+#content{
+    width:300px;
+    height:100px;
+    color:white;
+    font-size:36px;
+    line-height:100px;
+    text-align:center;
+
+}
+
+</style>
+<script>
+//bg follow mouse with ease
+var bg = $("#bg");
+    
+    
+bg.mousemove(function(event) {
+    var xPos = event.pageX;
+  $("#log").text(xPos);
+    TweenLite.to(bg, .5, {css:{backgroundPosition:xPos + "px"}});
+});
+</script>
+</head>
+<body>
+
+<div id="bg">
+    <div id="content">CONTENT</div>
+</div>
+
+<button type="button" onclick="TweenLite.to(bg, .5, {css:{backgroundPosition:50px}});">move</button>
+<div id="log"></div>
+
+</body>
+</html>

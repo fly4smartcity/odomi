@@ -1,0 +1,55 @@
+function f_btnTarget()
+{
+	map.removeLayer(goal);
+	scegliTarget=true;
+	//creaPercorso=true;
+	alert("Scegli il target sulla mappa");
+}
+function f_btnGoMission()
+{	
+	
+	creaPercorso=false;
+	
+	$('#btnGoMission').prop('disabled', true);
+	//alert("lat: "+ targetLat+" lng: "+targetLng);
+	
+	if(scegliTarget == true)
+	{
+	scegliTarget=false;
+	call_srv(parseFloat(targetLat),parseFloat(targetLng));
+	}
+	
+	if(scegliMoltiTarget == true)
+	{
+	/*
+	for(i = 0 ; i <= 2; i++)
+	{
+	call_srv(parseFloat(multiLat[i]),parseFloat(multiLng[i]));
+	}
+	*/
+	call_srv(parseFloat(multiLat[ix-1]),parseFloat(multiLng[ix-1]));
+
+	}
+	scegliMoltiTarget=false;
+	$('#btnHome').prop('disabled', false);
+	$('#btnPause').prop('disabled', false);
+}
+function f_btnGoDefaultMission()
+{	
+	scegliTarget=false;
+	$('#btnGoMission').prop('disabled', true);
+	//alert("lat: "+ targetLat+" lng: "+targetLng);
+	call_srv(parseFloat(45.047),parseFloat(7.676));
+	$('#btnHome').prop('disabled', false);
+	$('#btnPause').prop('disabled', false);
+}
+
+function f_multiTarget()
+{
+	//map.removeLayer(goal);
+	scegliMoltiTarget=true;
+	alert("Scegli più target sulla mappa");
+}
+
+
+

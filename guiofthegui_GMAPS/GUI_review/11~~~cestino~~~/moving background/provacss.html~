@@ -1,0 +1,321 @@
+<!--DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Background Image Transformations</title>
+<style>
+body
+{
+	font-family: arial, helvetica, freesans, sans-serif;
+	font-size: 100%;
+	color: #333;
+	background-color: #ddd;
+}
+
+h1
+{
+	font-size: 1.5em;
+	font-weight: normal;
+	margin: 0;
+}
+
+
+
+#element2
+{
+	width: 250px;
+	height:250px;
+	/*font-size: 2em;
+	text-align: center;
+	line-height: 5em;
+	margin: 3em auto;*/
+	border: 2px solid #666;
+	/**border-radius: 7px;*/
+	content: "";
+	position: absolute;
+	/*width: 200%;
+	height: 200%;
+	top: -50%;
+	left: -50%;*/
+	z-index: -1;
+	background: url(images.png) 0 0 repeat;
+	position: relative;
+	overflow: hidden;
+	-webkit-transform : rotate(0deg);
+	-moz-transform : rotate(0deg);
+        -ms-transform : rotate(0deg);
+        transform : rotate(0deg);
+}
+
+/*
+#element2
+{
+	position: relative;
+	overflow: hidden;
+}
+
+#element2:before
+{
+	content: "";
+	position: absolute;
+	width: 200%;
+	height: 200%;
+	top: -50%;
+	left: -50%;
+	z-index: -1;
+	background: url(images.png) 0 0 repeat;
+	position: relative;
+	overflow: hidden;
+}*/
+/*
+#element2:before
+{
+	
+	transform: rotate(30deg);
+}*/
+
+</style>
+
+</head>
+<body>
+
+<h1>Background Image Transformations</h1>
+
+
+<div id="element2"></div>
+<button id="rotateButon" type="button" onclick="rotator();">modifica bussola</button>
+<script>
+//document.getElementById('element2').getElementsByTagName('transform').style.webkitTransform = "rotate(-20deg)";
+
+var rotator = function(youDegreesValue){
+alert("pippo");
+        $("#element2").css({'-webkit-transform' : 'rotate('+ youDegreesValue +'deg)',
+                          '-moz-transform' : 'rotate('+ youDegreesValue +'deg)',
+                          '-ms-transform' : 'rotate('+ youDegreesValue +'deg)',
+                          'transform' : 'rotate('+ youDegreesValue +'deg)'});
+
+    }
+
+
+
+    $(document).ready(function(){
+
+alert("pippo");
+            $("#rotateButon").click(function(){
+
+                rotator(120);   
+
+            });
+
+    });
+</script>
+
+
+
+</body>
+</html-->
+
+	
+
+   <!--DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Background Image Transformations</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<style>
+body
+{
+        font-family: arial, helvetica, freesans, sans-serif;
+        font-size: 100%;
+        color: #333;
+        background-color: #ddd;
+}
+ 
+h1
+{
+        font-size: 1.5em;
+        font-weight: normal;
+        margin: 0;
+}
+ 
+ 
+ 
+#element2
+{
+        width: 250px;
+        height:250px;
+        border: 2px solid #666;
+        content: "";
+        position: relative;
+        overflow: hidden;
+}
+ 
+#element2BG{
+position: absolute;
+top:0; 
+left: 0;
+width: 250px;
+height:250px;
+background: url(images.png) 0 0 repeat;
+}
+ 
+</style>
+ 
+</head>
+<body>
+ 
+<script>
+ 
+var rotator = function(youDegreesValue){
+ 
+  $("#element2BG").css({'-webkit-transform' : 'rotate('+ youDegreesValue +'deg)',
+                                    '-moz-transform' : 'rotate('+ youDegreesValue +'deg)',
+                                    '-ms-transform' : 'rotate('+ youDegreesValue +'deg)',
+                                    'transform' : 'rotate('+ youDegreesValue +'deg)'});
+ 
+}
+ 
+ 
+$(document).ready(function(){
+ 
+        $("#rotateButon").click(function(){
+ 
+                rotator(120);  
+ 
+        });
+ 
+});
+</script>
+ 
+ 
+ 
+<h1>Background Image Transformations</h1>
+ 
+ 
+<div id="element2">
+        <div id="element2BG">
+        </div>
+</div>
+ 
+<button id="rotateButon">modifica bussola</button>
+ 
+ 
+ 
+ 
+</body>
+</html-->
+
+<!DOCTYPE html>
+<html>
+<head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<meta charset="UTF-8" />
+<title>Background Image Transformations</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<style>
+
+body
+{
+        font-family: arial, helvetica, freesans, sans-serif;
+        font-size: 100%;
+        color: #333;
+        background-color: #ddd;
+}
+ 
+h1
+{
+        font-size: 1.5em;
+        font-weight: normal;
+        margin: 0;
+}
+ 
+ 
+ 
+#element2
+{
+        width: 250px;
+        height:250px;
+        font-size: 2em;
+        text-align: center;
+        line-height: 5em;
+        margin: 3em auto;
+        border: 2px solid #666;
+        border-radius: 7px;
+}
+ 
+ 
+#element2
+{
+        position: relative;
+        overflow: hidden;
+}
+ 
+#element2:before
+{
+        content: "";
+        position: absolute;
+        /* Changed these */
+        display:block;         
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        background: url(images.png) 0 0 repeat;
+}
+/*
+#element2:before
+{
+       
+        transform: rotate(30deg);
+}*/
+
+
+</style>
+ <script>
+ 
+
+//document.getElementById('element2').getElementsByTagName('transform').style.webkitTransform = "rotate(-20deg)";
+ 
+function rotate(r){
+    var rotation, sheet, cssText;
+ 
+    // Randomly choose a rotation and create the cssText rule (webkit)
+    rotation = r || Math.floor(Math.random() * (350 - 10 + 1)) + 10;
+    cssText = '#element2::before {-webkit-transform:rotate('+rotation+'deg); }';
+ 
+    // Since we're rotating a pseudo-element, we need to create a stylesheet
+    // since :before's cannot be directly manipulated
+    sheet = document.createElement('style');
+    sheet.type = 'text/css';
+    sheet.media = 'screen';
+    if(sheet.styleSheet)
+        sheet.styleSheet.cssText = cssText;
+    else
+        sheet.appendChild(document.createTextNode(cssText));
+    document.head.appendChild(sheet);
+};
+rotate(50);
+
+document.getElementById('element2').addEventListener('click', function(){
+    rotate();
+});
+
+//rotate();
+
+</script>
+</head>
+<body>
+ 
+<div id="element2"></div>
+ 
+ 
+ 
+
+
+ 
+</body>
+</html>
+
+

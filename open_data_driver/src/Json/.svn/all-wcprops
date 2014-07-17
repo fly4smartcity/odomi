@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json
+END
+json_reader.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json_reader.cpp
+END
+autolink.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/autolink.h
+END
+forwards.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/forwards.h
+END
+json_internalmap.inl
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json_internalmap.inl
+END
+json_internalarray.inl
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json_internalarray.inl
+END
+json_writer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json_writer.cpp
+END
+json_value.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json_value.cpp
+END
+sconscript
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/sconscript
+END
+reader.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/reader.h
+END
+config.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/config.h
+END
+json.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json.h
+END
+json_valueiterator.inl
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json_valueiterator.inl
+END
+json_batchallocator.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/json_batchallocator.h
+END
+writer.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/writer.h
+END
+value.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/value.h
+END
+features.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/src/Json/features.h
+END

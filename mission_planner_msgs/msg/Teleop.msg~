@@ -1,0 +1,4 @@
+uint8 HOME=1
+uint8 CIRCLE=2
+uint8 type
+

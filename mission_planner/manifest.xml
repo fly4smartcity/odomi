@@ -1,0 +1,16 @@
+<package>
+  <description brief="mission_planner">
+
+     mission_planner
+
+  </description>
+  <author>lte-platform</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/mission_planner</url>
+  <depend package="roscpp"/>
+  <depend package="mission_planner_msgs"/>
+
+</package>
+
+
