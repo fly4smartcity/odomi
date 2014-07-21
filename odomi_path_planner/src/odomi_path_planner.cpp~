@@ -1,3 +1,4 @@
+// based on DstarDraw.cpp by James Neufeld (neufeld@cs.ualberta.ca)
 // Author: Stefano Rosa
 // @TODO: dimensions of the map, get map from ros, put everything in world coordinates,
 //        add costs to cells, publish waypoints  
@@ -10,7 +11,7 @@
 #include "tf/transform_listener.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include <unistd.h>
-#include "Dstar.h"
+#include "odomi_path_planner/Dstar.h"
 #include "mission_planner_msgs/CoordinateArray.h"
 #include "mission_planner_msgs/Coordinate.h"
 
