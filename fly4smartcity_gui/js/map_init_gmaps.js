@@ -21,7 +21,7 @@
 
     function initialize() {
 
-	var starting = new google.maps.LatLng(45.08367528971948, 7.605402247571433 ); //Torino 45.079006,7.61466 Nardò 
+	var starting = new google.maps.LatLng(45.066278, 7.688945 ); //Torino 45.079006,7.61466 Nardò 
 
         var mapOptions = {
           center: starting,
@@ -52,25 +52,16 @@
 	});
 
 	var bufferZone = 		   [
-	                             new google.maps.LatLng(45.08367528971948,7.605402247571433),
-	                             new google.maps.LatLng(45.0841027805813,7.608550382106472),
-	                             new google.maps.LatLng(45.08418307153839,7.609234399399199),
-	                             new google.maps.LatLng(45.08471860925961,7.60926484308621),
-	                             new google.maps.LatLng(45.08554466641419,7.609188007435488),
-				     new google.maps.LatLng(45.08618329907102,7.609228479862258),
-				     new google.maps.LatLng(45.08636655505995,7.608785901639468),
-				     new google.maps.LatLng(45.08659846645951,7.608999159013967),
-				     new google.maps.LatLng(45.08680013451648,7.608578272930322),
-				     new google.maps.LatLng(45.08690077412707,7.607808830398513),
-				     new google.maps.LatLng(45.0869344996978,7.607569364625642),
-				     new google.maps.LatLng(45.08677432764915,7.607522697990346),
-				     new google.maps.LatLng(45.08681112337425,7.607282730402845),
-				     new google.maps.LatLng(45.08750253711596,7.602184556422387),
-				     new google.maps.LatLng(45.08774136201727,7.596370752933257),
-				     new google.maps.LatLng(45.08663759506856,7.591239969561931),
-				     new google.maps.LatLng(45.08630518366243,7.593551233432462),
-				     new google.maps.LatLng(45.08541313954995,7.593303737728812),
-				     new google.maps.LatLng(45.08367528971948,7.605402247571433),
+	                 		    /*
+	                             new google.maps.LatLng(  45.0662689209,  7.68884277344),
+	                             new google.maps.LatLng(45.0662574768, 7.68884992599),
+	                             new google.maps.LatLng(45.0662307739, 7.68891811371),
+	                             new google.maps.LatLng(         45.0662384033,7.68893480301),
+	                             new google.maps.LatLng(         45.0662956238 ,7.68897390366),
+				     new google.maps.LatLng(         45.0663108826 , 7.68896579742),
+				     new google.maps.LatLng(         45.0663299561,7.68890714645),
+				     new google.maps.LatLng(         45.0663261414 ,7.68888521194),
+				     new google.maps.LatLng(         45.0662689209 ,7.68884277344),*/
 	                           ];
 
 	var flightZone = 			[
@@ -100,6 +91,28 @@
 	flightPath.setMap(map);
       	}
 
+    
+    function visualizeOpendata (odObj,h) { //visualize an array of open data vectors 
+		
+    	
+    	for(var i = 0; i < odObj.length; i++){
+    		
+    		odZone = odObj[i]; 
+    		var helem = 0.5;//h[i]/5.0;
+    		console.log("h elem " + helem);
+
+    	var od = new google.maps.Polygon({
+            path: odZone,
+            geodesic: true,
+            strokeColor: '#FF0000',
+            fillColor: '#FF0000',
+            fillOpacity: helem,
+          });
+    	
+    	od.setMap(map);
+    	}
+	}
+    
 	function placeMarker(position, map) {
 	  
 	  var multiTarget = ['images/marker1.png','images/marker2.png','images/marker3.png','images/marker4.png','images/marker5.png' ];

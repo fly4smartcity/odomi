@@ -74,11 +74,11 @@
 	                           ];
 
 	var flightZone = 			[
-	                 			 new google.maps.LatLng(45.084407,7.608691),
+	                 			/* new google.maps.LatLng(45.084407,7.608691),
 	                 			 new google.maps.LatLng(45.085296,7.608932),
 	                 			 new google.maps.LatLng(45.085555,7.607053),
 	                 			 new google.maps.LatLng(45.084670,7.606823),
-	                 			 new google.maps.LatLng(45.084407,7.608691)
+	                 			 new google.maps.LatLng(45.084407,7.608691) */
                       			];
 	
 	var bufferPath = new google.maps.Polyline({

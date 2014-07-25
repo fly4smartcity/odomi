@@ -1,3 +1,4 @@
+// based on DstarDraw.cpp by James Neufeld (neufeld@cs.ualberta.ca)
 // Author: Stefano Rosa
 // @TODO: dimensions of the map, get map from ros, put everything in world coordinates,
 //        add costs to cells, publish waypoints  
@@ -34,7 +35,7 @@ int mstate = 0;
 
 bool b_autoreplan = false;
 
-int inflation=5;
+int inflation=1;
 
 // things to pub wp
 
@@ -235,14 +236,18 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
     {
       int8_t cell=map->data[i+j*width];
       if(cell>0 && cell<127)
-        obstacles.at<unsigned char>(height-j,i)=0;
+        obstacles.at<unsigned char>(height-1-j,i)=0;
       else
          if(cell>=127)
-        obstacles.at<unsigned char>(height-j,i)=255;
+        obstacles.at<unsigned char>(height-1-j,i)=255;
     }
 
   resize(obstacles,obstacles,Size(obstacles.cols/scale,obstacles.rows/scale));
   //imshow("obstacles",obstacles);
+  
+  rectangle(obstacles,Point(0,0),Point(obstacles.cols-1,obstacles.rows-1),0,1);	
+  circle(obstacles,Point(0,0),4,255,-1);    
+  circle(obstacles,Point(width-1,height-1),4,255,-1);  
 
   threshold( obstacles, obstacles, 100, 255,0 );
   //imshow("thresolded",obstacles);

@@ -1,8 +1,14 @@
   // Connecting to ROS
   // -----------------
-
+  var index = 0 ;
+  var i = 0;
+  var d = new Date();
+  var time  = d.getTime();
+  var timeM = time;
+  
   var ros = new ROSLIB.Ros({
-    url : 'ws://localhost:9090'
+	  //url : 'ws://192.168.1.88:9090'
+    	url : 'ws://localhost:9091'
   });
 
   // Subscribing to a Topic
@@ -10,22 +16,15 @@
 
   var listener = new ROSLIB.Topic({
     ros : ros,
-    name : '/sensor_packet',
-    messageType : 'gui_msg/SensorPacket'
+    name : '/feedback',
+    messageType : 'mission_planner_msgs/SensorPacket'
+   
   });
+  
 
+  
   listener.subscribe(function(message) {
-    //console.log('Received message on ' + listener.name + ': ' + message.data);
-    map.removeLayer(home);
-    map.removeLayer(drone);
-    map.addLayer(home);
-    map.addLayer(drone);
-
-/*********************
-modifico tutte le variabili che comandano ogni sigolo oggetto.
-SONO DICHIARATE NEL FOGLIO JS indicatori.js
-*************************/
-
+    	  
     // Attitude update
     attitude.setRoll(message.roll_ang);
     attitude.setPitch(message.pitch_ang);
@@ -33,127 +32,169 @@ SONO DICHIARATE NEL FOGLIO JS indicatori.js
     // Heading update
     heading.setHeading(message.compass_heading);
     
-    // Vario update
-    //variometer.setVario(2*Math.sin(increment/10));//message.variometer
-    
-    // Airspeed update
-    //airspeed.setAirSpeed(80+80*Math.sin(increment/10));
-    
-    // Altimeter update
-    altimeter.setAltitude(message.altimeter);
-    //altimeter.setPressure(1000+3*Math.sin(increment/50));
+    // Airspeed update -> becomes battery in Volts
+    if(message.battery > 0)
+    airspeed.setAirSpeed(message.battery); // 16.8 V -> maxVolt 13.8-> minVolt
+    else
+    	airspeed.setAirSpeed(0);
+    //alert(message.altimeter);
+    if(message.altimeter > 0)
+    	
+    altimeter.setAltitude(message.altimeter*100); //dam
+    else
+    	airspeed.setAltitude(0);
 
+    if(index == 0){ // firts time
+    	putCurrentPosition(message.c_latit,message.c_longit);
+        putHome(message.h_latit,message.h_longit);
 
+    	oldCurrentPosition[index] = new google.maps.LatLng(message.c_latit,message.c_longit);
 
+    }else
+    	{ // new entries
+    var newpositionC = new google.maps.LatLng(message.c_latit,message.c_longit);
 
-    batteryLevel.value=message.battery;//batteria
-    batteryLevel.grow();
-
-    updateMarker(home,message.h_latit,message.h_longit);//sposto home
-    updateMarker(drone,message.c_latit,message.c_longit);//sposto drone
-    //drone.bringToFront();
-    updateMarker(goal,message.c_latit,message.longit);//sposto target
-
-/*
-+"\nGPS1drone:\t"+message.GPS1drone+"\nGPS2drone:\t"+message.GPS2drone+"\nGPS1home:\t"+message.GPS1home+"\nGPS2home:\t"+message.GPS2home
-*/
-
-    //listener.unsubscribe();
-  });
-
-
-
-//subscribing per messaggi path
-  var listener_path = new ROSLIB.Topic({
-    ros : ros,
-    name : '/drone',
-    messageType : 'gui_msg/Drone'
-
-  });
-  
-  
-  listener_path.subscribe(function(message) {
+	markerCurrentPosition.setPosition(newpositionC);
 	
-	var Phome=new Object();
-	var path= new Array();
-	var Pgoal=new Object();
-	//REFRESH POINT 
-	map.removeLayer(home);
-    	map.removeLayer(goal);
-	erasePath(map,Vlayer);
-    	map.addLayer(home);
-    	map.addLayer(goal);
-	//CARICO LA HOME
-	Phome.lat=message.home.latitude;
-	Phome.lng=message.home.longitude;	
-	//CARICO IL PATH
-	var i;
-	for(i=0;i<message.gps_waypoint.length;i++)
-	{
-		path[i]=new Object();
-		path[i].lat=message.gps_waypoint[i].latitude;
-		path[i].lng=message.gps_waypoint[i].longitude;
-	}
-	//CARICO IL GOAL
-	Pgoal.lat=message.target_position.latitude;
-	Pgoal.lng=message.target_position.longitude;
-	//AGGIORNAMENTO PUNTI
-	updateMarker(home,Phome.lat,Phome.lng);//SPOSTO HOME
-	updateMarker(goal,Pgoal.lat,Pgoal.lng);//sposto GOAL
-	Vlayer=drawPath(map,path);//WAYPOINT
-/*
-var point=new Object();  
-  var path=new Array();//path del percorso
-//alert("pluto ");
-
-
-    point.lat=message.GPSLATHOME;
-    point.lng=message.GPSLNGHOME;
-    updateMarker(home,point.lat,point.lng);//SPOSTO HOME
-    updateMarker(drone,point.lat,point.lng);//sposto drone
-
-var i=0;
-    point.lat=message.GPSLATP1;
-    point.lng=message.GPSLNGP1;
-    path[i]= new Object();
-    path[i].lat=point.lat
-    path[i].lng=point.lng;
-    i++;
-    point.lat=message.GPSLATP2;
-    point.lng=message.GPSLNGP2;
-    path[i]= new Object();
-    path[i].lat=point.lat
-    path[i].lng=point.lng;;
-    i++;
-    point.lat=message.GPSLATP3;
-    point.lng=message.GPSLNGP3;
-    path[i]= new Object();
-    path[i].lat=point.lat
-    path[i].lng=point.lng;
-    i++;
-    point.lat=message.GPSLATP4;
-    point.lng=message.GPSLNGP4;
-    path[i]= new Object();
-    path[i].lat=point.lat
-    path[i].lng=point.lng;
-    i++;
-    point.lat=message.GPSLATP5;
-    point.lng=message.GPSLNGP5;
-    path[i]= new Object();
-    path[i].lat=point.lat
-    path[i].lng=point.lng;
-
-    point.lat=message.GPSLATGOAL;
-    point.lng=message.GPSLNGGOAL;
-    updateMarker(goal,point.lat,point.lng);//sposto goal
-
-
-for(i=0;i<5;i++)
-{
-  //alert("c i:"+i+" lat:"+path[i].lat+" lng:"+path[i].lng);
-}
-    Vlayer=drawPath(map,path);
-    //listener_path.unsubscribe();
-
-*/
+	d = new Date();
+	time  = d.getTime();
+		  	
+	
+	if((time - timeM) >= 200)
+		{
+	oldCurrentPosition[i] = newpositionC;
+	drawPath(oldCurrentPosition);
+	
+	timeM = time;
+	i++;
+    	}
+    
+    }
+    index++; // update index
   });
+
+//subscribing  target
+  var listener_target = new ROSLIB.Topic({
+    ros : ros,
+    name : '/mp_waypoints',
+    messageType : 'mission_planner_msgs/CoordinateArray'
+
+  });
+  
+  listener_target.subscribe(function(message) {
+	  
+	  var ll = message.waypoint.length;
+	  
+	  //home
+      putHome(message.waypoint[0].latitude,message.waypoint[0].longitude);
+
+	  
+	  //target 
+	  deleteTarget();	  
+
+	  putTarget(message.waypoint[ll-1].latitude,message.waypoint[ll-1].longitude);
+	  
+	  //waypoints
+	  for(var j=1; j<ll-1; j++)
+	  {
+		
+		placeMarkerWp( message.waypoint[j].latitude,message.waypoint[j].longitude);
+	  }
+	  
+//alert("target  " + message.waypoint[ll-1].latitude + ","+ message.waypoint[ll-1].longitude + "  circle   " +  message.waypoint[j-1].latitude + "," + message.waypoint[j-1].longitude);
+});
+
+
+  //subscribing per check
+  var listener_check = new ROSLIB.Topic({
+    ros : ros,
+    name : '/check',
+    messageType : 'std_msgs/Bool'
+
+  });
+  
+
+//subscribing  opendata for visualization
+  var listener_opendata = new ROSLIB.Topic({
+    ros : ros,
+    name : '/opendata',
+    messageType : 'open_data_msg/Data'
+
+  });
+  
+  listener_opendata.subscribe(function(opendata) {
+	  
+	//fillin array
+	  
+    var odZone = new Array(); // array of vector eleArray
+    var ind = 0 ;
+    
+  	for(var j = 0; j < opendata.data.length - 1 ; j++){ // j polygons
+  		  	  	
+  	  	var z = 0 ;
+  	    var eleArray = new Array(); // open data values  
+  	    var h = new Array();
+  	    
+  		// if it is > x -> visualize!
+  		var height = opendata.data[j].attributes[0].value;
+  		
+  		if(height > 1){
+  	  
+  	for (var i=0; i < opendata.data[j].area.points.length; i++) // i points message.data[0].area.points[0].x
+  		{
+  		
+
+  			
+  		if(opendata.data[j].area.points[i].x != 0 || opendata.data[j].area.points[i].y != 0)
+  		{	
+  		
+  			eleArray[z] = new google.maps.LatLng(opendata.data[j].area.points[i].x, opendata.data[j].area.points[i].y);
+  			 
+  			z++;
+  	  		
+  		}
+  		else
+  		{
+  		// put array in odZone 
+  		  	odZone[ind] = eleArray;
+
+  	  		h[ind] =  opendata.data[j-1].attributes[0].value;
+  	  		console.log("h elem " + opendata.data[j].attributes[0].value);
+  	  		
+  	  		ind++;   		//index of odZone
+  	  		
+  	  	// re - init	
+  	  	z = 0 ;
+  	    eleArray = new Array(); // open data values  
+  		}
+  		
+  		}
+  	 
+  		// put array in odZone 
+	  	odZone[ind] = eleArray;
+	  	
+  		h[ind] =  opendata.data[j-1].attributes[0].value;
+  		console.log("h elem " + opendata.data[j].attributes[0].value);
+
+  		ind++;   		//index of odZone
+  		
+  	}
+  	}
+		//alert(opendata.data[j-1].attributes[0].value);
+  	visualizeOpendata (odZone,h);
+  });
+
+  
+  
+  listener_check.subscribe(function(message) {
+
+  if(message.data == true)
+  $('#btnGoMission').prop('disabled', false);
+  else
+	  $('#btnGoMission').prop('disabled', true);
+
+  });
+  
+  
+	  
+  

@@ -45,7 +45,7 @@ function f_btnCreaPercorsot()
 {
 	erasePath();
 	creapercorso=true;
-	alert("Scegli più target sulla mappa");
+	//alert("Scegli più target sulla mappa");
 }
 
 function f_teleopHome(){

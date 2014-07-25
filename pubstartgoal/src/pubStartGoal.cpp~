@@ -10,11 +10,18 @@
 #include <ctime>
 #include <math.h>
 #include <float.h>
-
-
-///////// BBBBBBBBBBBOMBER
-
+#include "mygeolib.h"
+#include "open_data_msg/BoundingBox.h"
+#include "open_data_msg/Data.h"
+#include <cstdlib>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include "opencv2/core/core.hpp"
+#include <iostream>
 #define pi 3.14159265358979323846
+
+using namespace cv;
+using namespace std;
 
  geometry_msgs::PoseStamped goal;
  geometry_msgs::PoseStamped start;
@@ -23,120 +30,107 @@
  ros::Publisher start_pub;
  ros::Publisher wp_pub;
 
- float h_lat_off = 45.06708;
- float h_lng_off = 7.688032;
- 
+ cv::Mat mappa;
+
+ float map_width;
+ float map_height;
+
+ double home_lat;
+ double home_lng;
+
+ int paddingx = 200; // multiple of 4 !!!
+ int paddingy = 200;
+
+
  int j = 0 ; 
  bool pub = false;
 
  float KV = 1.0706; // [px/m]
  float KO = 1.06853; // [px/m]
 
+ typedef vector <Point> Polygon;
 
-  /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-  /*::  This function converts decimal degrees to radians             :*/
-  /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-  double deg2rad(double deg) {
-  return (deg * pi / 180);
-  }
-
-  /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-  /*::  This function converts radians to decimal degrees             :*/
-  /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-  double rad2deg(double rad) {
-  return (rad * 180 / pi);
-	}
-
-
-  double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
-  double theta, dist;
-  theta = lon1 - lon2;
-
-  dist = sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(deg2rad(theta));
-  dist = acos(dist);
-  dist = rad2deg(dist);
-  dist = dist * 60 * 1.1515;
-  switch(unit) {
-    case 'M':
-      break;
-    case 'K':
-      dist = dist * 1.609344;
-      break;
-    case 'N':
-      dist = dist * 0.8684;
-      break;
-  }
-  return (dist);
-  }
-
-  // from http://stackoverflow.com/questions/238260/how-to-calculate-the-bounding-box-for-a-given-lat-lng-location
-  float WGS84EarthRadius(float lat)
-  { 
-  
-   // Semi-axes of WGS-84 geoidal reference
-   float WGS84_a = 6378137.0;  // Major semiaxis [m]
-   float WGS84_b = 6356752.3;  // Minor semiaxis [m]
-
-   float An = WGS84_a*WGS84_a * cos(lat);
-   float Bn = WGS84_b*WGS84_b * sin(lat);
-   float Ad = WGS84_a * cos(lat);
-   float Bd = WGS84_b * sin(lat);
-
-   float radius = sqrt((An*An + Bn*Bn)/(Ad*Ad + Bd*Bd));
-   return radius;
-  }
-
-    float convGPS(float distInm, bool is_lat)
+  void subGoal(const mission_planner_msgs::CoordinateArray::ConstPtr& wp)
   {
-
-    // latitudeInDegrees = h_lat_off 
-    // longitudeInDegrees = h_lng_off 
-
-    float lat = deg2rad(h_lat_off);
-    float lng = deg2rad(h_lng_off);
-
-    float result = 0;    
-    
-    // Radius of Earth at given latitude
-    float radius = WGS84EarthRadius(lat);
-    
-    // Radius of the parallel at given latitude
-    float pradius = radius*cos(lat);
-
-    if(is_lat == true) // if it s a lat calculation 
-    {
-    float latGps = lat - distInm/radius;
-	result = rad2deg(latGps);
-    }
-    else // or a lng
-    {
-    float lngGps = lng + distInm/pradius;
-	result = rad2deg(lngGps);
-   }
-
-   return result;
-  }
-
-  void subGoal(const mission_planner_msgs::CoordinateArray::ConstPtr& wp){
   int s = wp->waypoint.size();
+  float Plat;
+  float Plng; 	  
 
   if( s!= 0){
   ROS_INFO("Subscribing Waypoints [%d]", wp->waypoint.size());
   
-  float Plat = wp->waypoint[s-1].latitude;
-  float Plng = wp->waypoint[s-1].longitude;
+  Plat = wp->waypoint[s-1].latitude;
+  Plng = wp->waypoint[s-1].longitude;
 
-  float disty = distance(h_lat_off,h_lng_off,Plat, h_lng_off,'K')*1000; // in m
-  float distx = distance(h_lat_off,h_lng_off,h_lat_off,Plng,'K')*1000;
+  double disty = distance(home_lat,home_lng,Plat, home_lng,'K')*1000; // in m
+  double distx = distance(home_lat,home_lng,home_lat,Plng,'K')*1000;
 
-  goal.pose.position.x = distx*KV;  // px = m * px/m
-  goal.pose.position.y = disty*KO;
+  map_width =  roundUp(distx , 4);
+  map_height = roundUp(disty , 4);
+
+  goal.pose.position.x = distx;  // px = m * px/m
+  goal.pose.position.y = disty;
+  
+  // create map px = m
+
+
+
+  mappa =  cv::Mat(Size(map_width + paddingy*2,map_height+ paddingy*2),CV_8UC1);
+  mappa.setTo(255);
   
   ROS_INFO("Publishing target %f %f and home position %f %f \n",goal.pose.position.x, goal.pose.position.y, start.pose.position.x, start.pose.position.y );
   ROS_INFO("Distx %f disty %f start_lat %f start_lng %f",distx,disty, start.pose.position.x,start.pose.position.y );
   pub = true;
 
   goal_pub.publish(goal);
+  }
+
+  // call open data service  for the bounding box
+  ros::NodeHandle n;
+  ros::ServiceClient bbox_service = n.serviceClient<open_data_msg::BoundingBox>("bounding_box");
+
+  open_data_msg::BoundingBox srv;
+
+  srv.request.label = "edifici";
+  srv.request.bounding_box.points.resize(2);
+
+	
+
+	srv.request.bounding_box.points[0].x = Plng; 
+	srv.request.bounding_box.points[0].y = Plat;
+	srv.request.bounding_box.points[1].x = home_lng;
+	srv.request.bounding_box.points[1].y = home_lat;
+
+
+ // call service open data for buildings  
+  if (bbox_service.call(srv))
+  {
+	if(srv.response.resp)
+	    ROS_INFO("Result: edifici: true called bbox %f %f %f %f", Plat, Plng, home_lat, home_lng);
+	else			    
+	   ROS_INFO("Result: false");
+  }
+  else
+  {
+    ROS_ERROR("Failed to call service edifici bounding_box");
+    
+  }
+
+
+ // call service open data for trees  
+
+  srv.request.label = "alberate";
+  if (bbox_service.call(srv))
+  {
+	if(srv.response.resp)
+	    ROS_INFO("Result: aleberate: true called bbox %f %f %f %f", Plat, Plng, home_lat, home_lng);
+	else			    
+	   ROS_INFO("Result: false");
+  }
+  else
+  {
+    ROS_ERROR("Failed to call service alberate bounding_box");
+    
   }
 
   }
@@ -159,16 +153,11 @@
 
   for(int i = 0 ; i < wayp->waypoint.size(); i++){
 
-  lat_m = wayp->waypoint[i].latitude /( KV); //distance lat in m
-  lng_m = wayp->waypoint[i].longitude / (KO); //distance lng in m
+  lat_m = wayp->waypoint[i].latitude; //distance lat in m
+  lng_m = wayp->waypoint[i].longitude; //distance lng in m
 
-  /*
-  float lat_gps = lat_m/110.54;
-  float lat_rad = deg2rad(lat_gps);
-  float lng_gps = lng_m/(111.32*cos(lat_rad)); */
-
-  wp.latitude = convGPS(lat_m, true);
-  wp.longitude = convGPS(lng_m, false);
+  wp.latitude = convGPS(home_lat,home_lng,lat_m, true);
+  wp.longitude = convGPS(home_lat,home_lng,lng_m, false);
 
   msg.waypoint.push_back(wp);
   ROS_INFO("publishing wp lat %f , %f  and wp in km %f , %f \n", wp.latitude, wp.longitude, lat_m, lng_m);
@@ -176,16 +165,16 @@
   }
 
   //mo provo con la home in px se diventa gps
-
+/*
   lat_m =   463.056  /( KV);
   lng_m =   470.095 / (KO);
 
-  wp.latitude = convGPS(lat_m, true);
-  wp.longitude = convGPS(lng_m, false);
+  wp.latitude = convGPS(h_lat_off,h_lng_off,lat_m, true);
+  wp.longitude = convGPS(h_lat_off,h_lng_off,lng_m, false);
 
   ROS_INFO("home wp lat %f , %f  and wp in km %f , %f \n", wp.latitude, wp.longitude, lat_m, lng_m);
 
-
+*/
   wp_pub.publish(msg);
 
 
@@ -209,21 +198,112 @@
   float Plat = spacket->h_latit;
   float Plng = spacket->h_longit;
 
-  float disty = distance(h_lat_off,h_lng_off,Plat,h_lng_off ,'K')*1000; // in m
+  home_lat = spacket->h_latit;
+  home_lng = spacket->h_longit;
 
-  float distx = distance(h_lat_off,h_lng_off,h_lat_off,Plng,'K')*1000;
+  //float disty = distance(h_lat_off,h_lng_off,Plat,h_lng_off ,'K')*1000; // in m
 
-  start.pose.position.x =  distx*KV; 
-  start.pose.position.y =  disty*KO;
+  //float distx = distance(h_lat_off,h_lng_off,h_lat_off,Plng,'K')*1000;
+
+  start.pose.position.x =  0; 
+  start.pose.position.y =  0;
 
   if(j == 1){
-  ROS_INFO("Publishing start_lat %f start_lng %f Plat %f Plng %f Distx %f disty %f \n",start.pose.position.x,start.pose.position.y,Plat,Plng,distx,disty);
+  //ROS_INFO("Publishing start_lat %f start_lng %f Plat %f Plng %f Distx %f disty %f \n",start.pose.position.x,start.pose.position.y,Plat,Plng,distx,disty);
   j++;
   }
     start_pub.publish(start);
   
  }
 }
+
+void subOd(const open_data_msg::DataConstPtr& opendata)
+{
+    	int ind = 0 ;
+    
+	double origin_lat = convGPS(home_lat, home_lng, -1*paddingy,true);
+	double origin_lng = convGPS(home_lat, home_lng, -1*paddingx,false);
+
+
+  	for(int j = 0; j < opendata->data.size(); j++) // for su opendata
+	{ 
+
+
+		float height = atof(opendata->data[j].attributes[0].value.c_str());
+		if( height > 1.0) // height>1 -> is not a street 
+		{
+			Polygon poly;
+			
+		  	for (int i=0; i < opendata->data[j].area.points.size(); i++) // number of points into the polygon
+		  	{
+		  		if(opendata->data[j].area.points[i].x != 0 && opendata->data[j].area.points[i].y != 0)
+		  		{	
+					double distpointy = distance(origin_lat,origin_lng,opendata->data[j].area.points[i].x,origin_lng ,'K')*1000 ; // in m
+					double distpointx = distance(origin_lat,origin_lng,origin_lat,opendata->data[j].area.points[i].y,'K')*1000  ;		
+					/*
+					if(distpointx >=  map_width)
+						distpointx =  map_width -1 ;
+					if(distpointy >=  map_height)
+						distpointy =  map_height -1;
+
+					if(distpointx <  0)
+						distpointx =  0;
+					if(distpointy <  0)
+						distpointy =  0;
+					*/
+
+					poly.push_back(Point(distpointx, distpointy));
+					
+					if(distpointx < paddingx || distpointy < paddingy )
+						ROS_INFO("Height: %f, Points are in m x %f y %f and gps %f %f home is %f %f, map dimensions: %f %f", height,
+						distpointx, distpointy,opendata->data[j].area.points[i].x,opendata->data[j].area.points[i].y,origin_lat,origin_lng,
+						map_width,map_height);
+		  			
+	  			}
+	  			else // draw poly
+	  			{
+					vector<Point> tmp = poly;
+					const Point* elementPoints[1] = { &tmp[0] };
+					int numberOfPoints = (int)tmp.size();
+					fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
+					polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
+					/*
+					for(int k=0; k < numberOfPoints;k++)
+						circle(mappa,poly[k],2,127,-1);*/
+					
+					poly.clear();
+	  			}
+	  		}
+			vector<Point> tmp = poly;
+			const Point* elementPoints[1] = { &tmp[0] };
+			int numberOfPoints = (int)tmp.size();
+			fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
+			polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
+/*
+			for(int k=0; k < numberOfPoints;k++)
+				circle(mappa,poly[k],2,127,-1);
+			*/
+			poly.clear();
+
+
+	  	 
+	  	}
+  	}
+  
+	//save to file
+	
+	Rect roi(paddingx,paddingy,mappa.cols - paddingx*2,mappa.rows - paddingy*2);
+	Mat crop = mappa(roi).clone();
+
+
+	if(imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap.pgm", crop))
+		ROS_INFO("Map crop created");
+if(imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap_raw.pgm", mappa))
+		ROS_INFO("Map created 2");
+
+  }
+
+
 
 int main(int argc, char **argv)
 {
@@ -232,16 +312,18 @@ int main(int argc, char **argv)
    
   int i = 0;
   
-   
+  
+ 
   ros::NodeHandle n;
 
-  goal_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 2,true);
+  goal_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 2,false);
   start_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/start", 2,false);
-  wp_pub    = n.advertise<mission_planner_msgs::CoordinateArray>("/waypoints", 2,true);
+  wp_pub    = n.advertise<mission_planner_msgs::CoordinateArray>("/waypoints", 2,false);
 
   ros::Subscriber goal_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/gui_waypoints", 1, subGoal);
   ros::Subscriber start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, subStart);
   ros::Subscriber wp_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/2mp_wp", 1, subWp);
+  ros::Subscriber od = n.subscribe<open_data_msg::Data>("/opendata", 1, subOd);
   
   ros::Rate loop_rate(10);
  
@@ -251,16 +333,7 @@ int main(int argc, char **argv)
   goal.header.frame_id = 'g';
  
   
-  //goal.pose.position.x = 208;  
-  //goal.pose.position.y = 139;
-  //start
   start.header.frame_id = 's';
- 
- // start.pose.position.x = 30;  
- // start.pose.position.y = 50;
-  //ros::Rate loop_rate(0.1);
-  //ros::Duration onesec(1,0);
-
   
   
 //&& i <= 1
@@ -276,6 +349,7 @@ int main(int argc, char **argv)
   loop_rate.sleep();
 
   }
+
 
   return 0;
 }
