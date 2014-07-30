@@ -42,47 +42,46 @@
   }
 
   // from http://stackoverflow.com/questions/238260/how-to-calculate-the-bounding-box-for-a-given-lat-lng-location
-  float WGS84EarthRadius(float lat)
+  double WGS84EarthRadius(double lat)
   { 
   
+
+
    // Semi-axes of WGS-84 geoidal reference
-   float WGS84_a = 6378137.0;  // Major semiaxis [m]
-   float WGS84_b = 6356752.3;  // Minor semiaxis [m]
+   double WGS84_a = 6378137.0;  // Major semiaxis [m]
+   double WGS84_b = 6356752.3;  // Minor semiaxis [m]
 
-   float An = WGS84_a*WGS84_a * cos(lat);
-   float Bn = WGS84_b*WGS84_b * sin(lat);
-   float Ad = WGS84_a * cos(lat);
-   float Bd = WGS84_b * sin(lat);
+   double An = WGS84_a*WGS84_a * cos(lat);
+   double Bn = WGS84_b*WGS84_b * sin(lat);
+   double Ad = WGS84_a * cos(lat);
+   double Bd = WGS84_b * sin(lat);
 
-   float radius = sqrt((An*An + Bn*Bn)/(Ad*Ad + Bd*Bd));
+   double radius = sqrt((An*An + Bn*Bn)/(Ad*Ad + Bd*Bd));
    return radius;
   }
 
-    float convGPS(float h_lat_off, float h_lng_off, float distInm, bool is_lat)
+    double convGPS(double h_lat_off, double h_lng_off, double distInm, bool is_lat)
   {
 
-//    float lat = deg2rad(45.06708);
-//    float lng = deg2rad(7.68803);
+    double lat = deg2rad(h_lat_off);
+    double lng = deg2rad(h_lng_off);
 
-    float lat = deg2rad(h_lat_off);
-    float lng = deg2rad(h_lng_off);
-
-    float result = 0;    
+    double result = 0;    
     
     // Radius of Earth at given latitude
-    float radius = WGS84EarthRadius(lat);
+    double radius = WGS84EarthRadius(lat);
     
     // Radius of the parallel at given latitude
-    float pradius = radius*cos(lat);
+    double pradius = radius*cos(lat);
 
     if(is_lat == true) // if it s a lat calculation 
     {
-    float latGps = lat - distInm/radius;
+    double latGps = lat + distInm/radius;
 	result = rad2deg(latGps);
     }
     else // or a lng
     {
-    float lngGps = lng + distInm/pradius;
+    double lngGps = lng + distInm/pradius;
 	result = rad2deg(lngGps);
    }
 
