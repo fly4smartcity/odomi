@@ -1,3 +1,12 @@
+/**
+TODO:
+- add others open data sources
+
+- if no path replanning
+
+- radius >= 0
+*/
+
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Header.h"
@@ -18,6 +27,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/core/core.hpp"
 #include <iostream>
+#include "nav_msgs/OccupancyGrid.h"
+#include <math.h>
 #define pi 3.14159265358979323846
 
 using namespace cv;
@@ -29,20 +40,26 @@ using namespace std;
  ros::Publisher goal_pub;
  ros::Publisher start_pub;
  ros::Publisher wp_pub;
+ ros::Publisher map_pub;
+
 
  cv::Mat mappa;
+ Mat crop ;
 
- float map_width;
- float map_height;
+ int map_width;
+ int map_height;
 
- double home_lat;
- double home_lng;
+ double home_lat, goal_lat;
+ double home_lng, goal_lng;
+
+ double sgn_lat ; // sgn is 1 or -1
+ double sgn_lng ;
 
  int paddingx = 200; // multiple of 4 !!!
  int paddingy = 200;
 
 
- int j = 0 ; 
+ int ready2odomi = 0 ; 
  bool pub = false;
 
  float KV = 1.0706; // [px/m]
@@ -50,20 +67,53 @@ using namespace std;
 
  typedef vector <Point> Polygon;
 
+
+  void publishMap(Mat m)
+  {
+    
+
+    std::vector<int8_t> map;
+
+    nav_msgs::OccupancyGrid pubMap;
+    
+    pubMap.header.stamp = ros::Time::now();
+    pubMap.info.map_load_time = ros::Time::now();
+    pubMap.header.frame_id = "map";
+    pubMap.info.width = m.cols;
+    pubMap.info.height = m.rows;
+
+
+    for(int j=m.rows;j > 0 ;j--)
+      for(int i=0;i < m.cols;i++)
+      {
+
+        if(m.at<unsigned char>(j,i)>100)
+          map.push_back(0);
+        else
+          map.push_back(100);
+        
+      }
+
+      pubMap.data = map;
+
+      
+      map_pub.publish(pubMap);
+      
+  }
+
+
   void subGoal(const mission_planner_msgs::CoordinateArray::ConstPtr& wp)
   {
-  int s = wp->waypoint.size();
-  float Plat;
-  float Plng; 	  
+  int s = wp->waypoint.size(); 	  
 
   if( s!= 0){
   ROS_INFO("Subscribing Waypoints [%d]", wp->waypoint.size());
   
-  Plat = wp->waypoint[s-1].latitude;
-  Plng = wp->waypoint[s-1].longitude;
+  goal_lat = wp->waypoint[s-1].latitude;
+  goal_lng = wp->waypoint[s-1].longitude;
 
-  double disty = distance(home_lat,home_lng,Plat, home_lng,'K')*1000; // in m
-  double distx = distance(home_lat,home_lng,home_lat,Plng,'K')*1000;
+  double disty = distance(home_lat,home_lng,goal_lat, home_lng,'K')*1000; // in m
+  double distx = distance(home_lat,home_lng,home_lat,goal_lng,'K')*1000;
 
   map_width =  roundUp(distx , 4);
   map_height = roundUp(disty , 4);
@@ -82,7 +132,14 @@ using namespace std;
   ROS_INFO("Distx %f disty %f start_lat %f start_lng %f",distx,disty, start.pose.position.x,start.pose.position.y );
   pub = true;
 
-  goal_pub.publish(goal);
+
+
+    //start_pub.publish(start);
+
+    //goal_pub.publish(goal);
+    ready2odomi = 0;
+    
+  
   }
 
   // call open data service  for the bounding box
@@ -96,8 +153,8 @@ using namespace std;
 
 	
 
-	srv.request.bounding_box.points[0].x = Plng; 
-	srv.request.bounding_box.points[0].y = Plat;
+	srv.request.bounding_box.points[0].x = goal_lng; 
+	srv.request.bounding_box.points[0].y = goal_lat;
 	srv.request.bounding_box.points[1].x = home_lng;
 	srv.request.bounding_box.points[1].y = home_lat;
 
@@ -106,7 +163,7 @@ using namespace std;
   if (bbox_service.call(srv))
   {
 	if(srv.response.resp)
-	    ROS_INFO("Result: edifici: true called bbox %f %f %f %f", Plat, Plng, home_lat, home_lng);
+	    ROS_INFO("Result: edifici: true called bbox %f %f %f %f", goal_lat, goal_lng, home_lat, home_lng);
 	else			    
 	   ROS_INFO("Result: false");
   }
@@ -117,22 +174,6 @@ using namespace std;
   }
 
 
- // call service open data for trees  
-/*
-  srv.request.label = "alberate";
-  if (bbox_service.call(srv))
-  {
-	if(srv.response.resp)
-	    ROS_INFO("Result: aleberate: true called bbox %f %f %f %f", Plat, Plng, home_lat, home_lng);
-	else			    
-	   ROS_INFO("Result: false");
-  }
-  else
-  {
-    ROS_ERROR("Failed to call service alberate bounding_box");
-    
-  }
-*/
   }
 
   void subWp(const mission_planner_msgs::CoordinateArray::ConstPtr& wayp) // publish towards the MP the array of waypoints
@@ -148,16 +189,16 @@ using namespace std;
   float lng_gps = lng_m*Kg_lng + h_lng_off;
    */
   
-  float lat_m;
-  float lng_m;
+  double lat_m;
+  double lng_m;
 
   for(int i = 0 ; i < wayp->waypoint.size(); i++){
 
   lat_m = wayp->waypoint[i].latitude; //distance lat in m
   lng_m = wayp->waypoint[i].longitude; //distance lng in m
 
-  wp.latitude = convGPS(home_lat,home_lng,lat_m, true);
-  wp.longitude = convGPS(home_lat,home_lng,lng_m, false);
+  wp.latitude = convGPS(home_lat,home_lng,sgn_lat*lat_m, true);
+  wp.longitude = convGPS(home_lat,home_lng,sgn_lng*lng_m, false);
 
   msg.waypoint.push_back(wp);
   ROS_INFO("publishing wp lat %f , %f  and wp in km %f , %f \n", wp.latitude, wp.longitude, lat_m, lng_m);
@@ -187,11 +228,11 @@ using namespace std;
   
  if(spacket->h_latit != 0 && spacket->h_longit != 0)
  {
- if(j == 0) {
+ if(ready2odomi == 0) {
 
  ROS_INFO("Subscribing Sensor Packet lat [%f] long [%f]", spacket->h_latit , spacket->h_longit);
  pub = true;
- j++;
+ ready2odomi = 1;
  
  }
 
@@ -201,29 +242,28 @@ using namespace std;
   home_lat = spacket->h_latit;
   home_lng = spacket->h_longit;
 
-  //float disty = distance(h_lat_off,h_lng_off,Plat,h_lng_off ,'K')*1000; // in m
-
-  //float distx = distance(h_lat_off,h_lng_off,h_lat_off,Plng,'K')*1000;
-
   start.pose.position.x =  0; 
-  start.pose.position.y =  0;
-
-  if(j == 1){
-  //ROS_INFO("Publishing start_lat %f start_lng %f Plat %f Plng %f Distx %f disty %f \n",start.pose.position.x,start.pose.position.y,Plat,Plng,distx,disty);
-  j++;
-  }
-    start_pub.publish(start);
+  start.pose.position.y =  0;  
   
  }
 }
 
-void subOd(const open_data_msg::DataConstPtr& opendata)
+
+void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data 
 {
     	int ind = 0 ;
-    
-	double origin_lat = convGPS(home_lat, home_lng, -1*paddingy,true);
-	double origin_lng = convGPS(home_lat, home_lng, -1*paddingx,false);
+      double origin_lat;
+      double origin_lng;
 
+       sgn_lat = (goal_lat - home_lat)/sqrt((goal_lat - home_lat)*(goal_lat - home_lat)); // sgn is 1 or -1
+       sgn_lng = (goal_lng - home_lng)/sqrt((goal_lng - home_lng)*(goal_lng - home_lng));
+
+      ROS_INFO("sgn lat %f lng %f",sgn_lat,sgn_lng);
+  // put map origin according to the goal position
+  // if it s 1 quad
+   origin_lat = convGPS(home_lat, home_lng, -1*sgn_lat*paddingy,true);
+   origin_lng = convGPS(home_lat, home_lng, -1*sgn_lng*paddingx,false);
+	
 
   	for(int j = 0; j < opendata->data.size(); j++) // for su opendata
 	{ 
@@ -254,10 +294,10 @@ void subOd(const open_data_msg::DataConstPtr& opendata)
 
 					poly.push_back(Point(distpointx, distpointy));
 					
-					if(distpointx < paddingx || distpointy < paddingy )
-						ROS_INFO("Height: %f, Points are in m x %f y %f and gps %f %f home is %f %f, map dimensions: %f %f", height,
-						distpointx, distpointy,opendata->data[j].area.points[i].x,opendata->data[j].area.points[i].y,origin_lat,origin_lng,
-						map_width,map_height);
+					if(distpointx < paddingx || distpointy < paddingy );
+						// ROS_INFO("Height: %f, Points are in m x %f y %f and gps %f %f home is %f %f, map dimensions: %d %d", height,
+						// distpointx, distpointy,opendata->data[j].area.points[i].x,opendata->data[j].area.points[i].y,origin_lat,origin_lng,
+						// map_width,map_height);
 		  			
 	  			}
 	  			else // draw poly
@@ -293,16 +333,22 @@ void subOd(const open_data_msg::DataConstPtr& opendata)
 	//save to file
 	
 	Rect roi(paddingx,paddingy,mappa.cols - paddingx*2,mappa.rows - paddingy*2);
-	Mat crop = mappa(roi).clone();
+  crop = mappa(roi).clone();
+    publishMap(crop.clone());
 
 
-	if(imwrite("/tmp/odomimap.pgm", crop))
-		ROS_INFO("Map crop created");
-if(imwrite("/tmp/odomimap_raw.pgm", mappa))
+	if(imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap.pgm", crop))
+    {
+		
+
+    ROS_INFO("Map crop created ");
+
+
+    }
+if(imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap_raw.pgm", mappa))
 		ROS_INFO("Map created 2");
 
   }
-
 
 
 int main(int argc, char **argv)
@@ -319,6 +365,8 @@ int main(int argc, char **argv)
   goal_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 2,false);
   start_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/start", 2,false);
   wp_pub    = n.advertise<mission_planner_msgs::CoordinateArray>("/waypoints", 2,false);
+  map_pub = n.advertise< nav_msgs::OccupancyGrid>("/map", 1,false);
+
 
   ros::Subscriber goal_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/gui_waypoints", 1, subGoal);
   ros::Subscriber start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, subStart);

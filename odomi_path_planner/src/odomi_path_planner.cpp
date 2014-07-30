@@ -11,7 +11,7 @@
 #include "tf/transform_listener.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include <unistd.h>
-#include "Dstar.h"
+#include "odomi_path_planner/Dstar.h"
 #include "mission_planner_msgs/CoordinateArray.h"
 #include "mission_planner_msgs/Coordinate.h"
 
@@ -221,16 +221,20 @@ void loadLteObstacles(string filename)
 void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
 {
   cout << "###received map\n";
-  nav_msgs::MapMetaData info=map->info;
 
+  nav_msgs::MapMetaData info=map->info;
+  
   resolution= info.resolution;
   width = info.width;
   height = info.height;
   origin= info.origin;
 
-
   Mat obstacles(height,width,CV_8UC1);
-  obstacles=Scalar(127);
+
+  obstacles.setTo(255);
+  dstar->init(0,0,width,height);
+
+  //obstacles=Scalar(127);
   for(int i=0;i<width;i++)
     for(int j=0;j<height;j++)
     {
@@ -242,12 +246,13 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
         obstacles.at<unsigned char>(height-1-j,i)=255;
     }
 
-  resize(obstacles,obstacles,Size(obstacles.cols/scale,obstacles.rows/scale));
   //imshow("obstacles",obstacles);
   
+  resize(obstacles,obstacles,Size(obstacles.cols/scale,obstacles.rows/scale));
+
   rectangle(obstacles,Point(0,0),Point(obstacles.cols-1,obstacles.rows-1),0,1);	
-  circle(obstacles,Point(0,0),4,255,-1);    
-  circle(obstacles,Point(width-1,height-1),4,255,-1);  
+  circle(obstacles,Point(0,0),8,255,-1);    
+  circle(obstacles,Point(width-1,height-1),8,255,-1);  
 
   threshold( obstacles, obstacles, 100, 255,0 );
   //imshow("thresolded",obstacles);
@@ -263,11 +268,181 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
     {
       unsigned char cost= obstacles.at<unsigned char>(j,i);  
       if(cost<10)
+
         dstar->updateCell(i,j, -1);
+
+
     }  
 
+  mission_planner_msgs::CoordinateArray wp;
+  mission_planner_msgs::Coordinate      wp_coordinate;
+  
+  dstar->updateStart(0,0);
+  dstar->updateGoal(width/scale,height/scale);
+  dstar->replan();
+
+  // list<waypoints> 
+  
+  returned_wp = dstar->getWaypoints();
+  ROS_INFO ("returned_wp %d\n ",returned_wp.size());
+
+  //Is it the right path ? 
+  if(returned_wp.size() < 3) 
+  {
+   
+   ROS_INFO ("---Goal not good replanning -----\n ");
+
+   //position.x = 
+   //position.y = position.y +10; 
+
+
+  }
+
+
+ /*  
+  
+  dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
+  dstar->replan();
+
+  // list<waypoints> 
+  
+  returned_wp = dstar->getWaypoints();
+  
+*/
+
+
+  std::list<waypoint>::const_iterator iterator;
+
+  for(iterator = returned_wp.begin(); iterator != returned_wp.end(); ++iterator)
+  {
+  wp_coordinate.latitude = (*iterator).y;
+  wp_coordinate.longitude = (*iterator).x;
+
+  printf("wp lat %f wp lng %f\n", wp_coordinate.latitude, wp_coordinate.longitude);
+
+  wp.waypoint.push_back(wp_coordinate);
+  }
+  
+
+
+  wp_pub.publish(wp);
 
 }
+
+
+/*
+
+// BACKUP
+void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
+{
+  cout << "###received map\n";
+
+  nav_msgs::MapMetaData info=map->info;
+  
+  resolution= info.resolution;
+  width = info.width;
+  height = info.height;
+  origin= info.origin;
+
+  Mat obstacles(height,width,CV_8UC1);
+
+  obstacles.setTo(255);
+  dstar->init(0,0,width,height);
+
+  //obstacles=Scalar(127);
+  for(int i=0;i<width;i++)
+    for(int j=0;j<height;j++)
+    {
+      int8_t cell=map->data[i+j*width];
+      if(cell>0 && cell<127)
+        obstacles.at<unsigned char>(height-1-j,i)=0;
+      else
+         if(cell>=127)
+        obstacles.at<unsigned char>(height-1-j,i)=255;
+    }
+
+  //imshow("obstacles",obstacles);
+  
+  resize(obstacles,obstacles,Size(obstacles.cols/scale,obstacles.rows/scale));
+
+  rectangle(obstacles,Point(0,0),Point(obstacles.cols-1,obstacles.rows-1),0,1); 
+  circle(obstacles,Point(0,0),8,255,-1);    
+  circle(obstacles,Point(width-1,height-1),8,255,-1);  
+
+  threshold( obstacles, obstacles, 100, 255,0 );
+  //imshow("thresolded",obstacles);
+
+  int morph_elem = MORPH_ELLIPSE;
+  int morph_size = inflation;
+  Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+  morphologyEx( obstacles, obstacles, 0, element );
+  dstar->setObstacles(obstacles);
+
+  for(int i=0;i<obstacles.cols;i++)
+    for(int j=0;j<obstacles.rows;j++)
+    {
+      unsigned char cost= obstacles.at<unsigned char>(j,i);  
+      if(cost<10)
+
+        dstar->updateCell(i,j, -1);
+
+
+    }  
+
+  mission_planner_msgs::CoordinateArray wp;
+  mission_planner_msgs::Coordinate      wp_coordinate;
+  
+  // dstar->updateStart(position.x/scale/resolution,position.y/scale/resolution);
+  // dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
+  dstar->replan();
+
+  // list<waypoints> 
+  
+  returned_wp = dstar->getWaypoints();
+  ROS_INFO ("returned_wp %d\n ",returned_wp.size());
+
+  //Is it the right path ? 
+  if(returned_wp.size() < 3) 
+  {
+   
+   ROS_INFO ("---Goal not good replanning -----\n ");
+
+   //position.x = 
+   //position.y = position.y +10; 
+
+
+  }
+
+
+ /*  
+  
+  dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
+  dstar->replan();
+
+  // list<waypoints> 
+  
+  returned_wp = dstar->getWaypoints();
+  
+*/
+
+/*
+  std::list<waypoint>::const_iterator iterator;
+
+  for(iterator = returned_wp.begin(); iterator != returned_wp.end(); ++iterator)
+  {
+  wp_coordinate.latitude = (*iterator).y;
+  wp_coordinate.longitude = (*iterator).x;
+
+  printf("wp lat %f wp lng %f\n", wp_coordinate.latitude, wp_coordinate.longitude);
+
+  wp.waypoint.push_back(wp_coordinate);
+  }
+  
+
+
+  wp_pub.publish(wp);
+
+} */
 
 
 void receiveGoal(const boost::shared_ptr<const geometry_msgs::PoseStamped> goal)
@@ -346,7 +521,7 @@ void receiveGoal(const boost::shared_ptr<const geometry_msgs::PoseStamped> goal)
   
 
 
-  wp_pub.publish(wp);
+  //wp_pub.publish(wp);
 
 
   }

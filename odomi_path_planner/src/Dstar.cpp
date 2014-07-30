@@ -2,7 +2,7 @@
  * Author: Stefano Rosa
  */
 
-#include "Dstar.h"
+#include "odomi_path_planner/Dstar.h"
 
 
 
@@ -15,7 +15,7 @@ int timesYouCallMe = 0 ;
  */
 Dstar::Dstar() { 
 
-  maxSteps = 240000; //80000;  // node expansions before we give up
+  maxSteps = 200000; //80000;  // node expansions before we give up
   C1       = 1;      // cost of an unseen cell
 
 }
@@ -71,6 +71,8 @@ bool Dstar::occupied(state u) {
  * Init dstar with start and goal coordinates, rest is as per
  * [S. Koenig, 2002]
  */
+
+
 void Dstar::init(int sX, int sY, int gX, int gY) {
   
   cellHash.clear();
