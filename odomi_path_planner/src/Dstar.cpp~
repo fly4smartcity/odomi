@@ -2,7 +2,7 @@
  * Author: Stefano Rosa
  */
 
-#include "Dstar.h"
+#include "odomi_path_planner/Dstar.h"
 
 
 

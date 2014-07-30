@@ -11,7 +11,7 @@
 #include "tf/transform_listener.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include <unistd.h>
-#include "odomi_path_planner/Dstar.h"
+#include "Dstar.h"
 #include "mission_planner_msgs/CoordinateArray.h"
 #include "mission_planner_msgs/Coordinate.h"
 
