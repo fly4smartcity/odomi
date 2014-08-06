@@ -136,9 +136,11 @@
   	    var h = new Array();
   	    
   		// if it is > x -> visualize!
-  		var height = opendata.data[j].attributes[0].value;
+  		var height = 2;
+  		if(opendata.data[0].label == "edifici")
+  			height = opendata.data[j].attributes[0].value ;
   		
-  		if(height > 1){
+  		if(height > 1 || opendata.data[0].label == "alberate"){
   	  
   	for (var i=0; i < opendata.data[j].area.points.length; i++) // i points message.data[0].area.points[0].x
   		{
@@ -159,7 +161,7 @@
   		  	odZone[ind] = eleArray;
 
   	  		//h[ind] =  opendata.data[j-1].attributes[0].value;
-  	  		console.log("h elem " + opendata.data[j].attributes[0].value);
+  	  		//console.log("h elem " + opendata.data[j].attributes[0].value);
   	  		
   	  		ind++;   		//index of odZone
   	  		
@@ -174,14 +176,14 @@
 	  	odZone[ind] = eleArray;
 	  	
   		//h[ind] =  opendata.data[j-1].attributes[0].value;
-  		console.log("h elem " + opendata.data[j].attributes[0].value);
+  		//console.log("h elem " + opendata.data[j].attributes[0].value);
 
   		ind++;   		//index of odZone
   		
   	}
   	}
 		//alert(opendata.data[j-1].attributes[0].value);
-  	visualizeOpendata (odZone,h);
+  	visualizeOpendata (odZone,h,opendata.data[0].label);
   });
 
   

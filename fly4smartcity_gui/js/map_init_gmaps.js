@@ -92,21 +92,34 @@
       	}
 
     
-    function visualizeOpendata (odObj,h) { //visualize an array of open data vectors 
+    function visualizeOpendata (odObj,h,label) { //visualize an array of open data vectors 
 		
     	
     	for(var i = 0; i < odObj.length; i++){
     		
     		odZone = odObj[i]; 
     		var helem = 0.5;//h[i]/5.0;
-    		console.log("h elem " + helem);
+    		console.log("lat " + odObj[i][0]);
 
-    	var od = new google.maps.Polygon({
+    		var od ;
+    		
+    	if(label == "edifici")  od = new google.maps.Polygon({
             path: odZone,
             geodesic: true,
             strokeColor: '#FF0000',
             fillColor: '#FF0000',
             fillOpacity: helem,
+          });
+  	
+    	if(label == "alberate") od = new google.maps.Circle({
+    		  strokeColor: '#00FF00',
+    	      strokeOpacity: 0.8,
+    	      strokeWeight: 2,
+    	      fillColor: '#00FF00',
+    	      fillOpacity: 0.35,
+    	      map: map,
+    	      center: odObj[i][0],
+    	      radius: 4
           });
     	
     	od.setMap(map);
