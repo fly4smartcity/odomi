@@ -27,11 +27,11 @@ ROS NODES:
 GUI:
 * `rosrun drone drone`
 * `rosrun pubstartgoal pubstartgoal`
-* [Generate](https://code.google.com/apis/console) your personal Gmaps API key. Then paste it in the `index.html` file:
+* [Generate](https://code.google.com/apis/console) your personal Gmaps API key. Then paste it in the `fly4smartcity_gui/index.html` file:
     `src="https://maps.googleapis.com/maps/api/js?key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX">`
 * In the `subscriber_ros_gui.js` be sure to set the `url` parameter in the `ros` variable to match your rosbridge configuration and
 * `roslaunch rosbridge_server rosbridge_websocket.launch`
-* Open `index.html` with a recent browser
+* Open `fly4smartcity_gui/index.html` with a recent browser
 
 ![Odomi screenshot](https://lh6.googleusercontent.com/-0DDY-a9rwGk/U9leyTGOGwI/AAAAAAAAEGQ/PLWV1RZ65pg/w753-h432-no/2014-07-30 "Odomi screenshot")
 
