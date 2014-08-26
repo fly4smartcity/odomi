@@ -1,4 +1,4 @@
-/* based on Dsta.h by James Neufeld (neufeld@cs.ualberta.ca)
+/* based on Dstar.h by James Neufeld (neufeld@cs.ualberta.ca)
  * Author: Stefano Rosa
  */
 
@@ -26,15 +26,15 @@ class state {
   int x;
   int y;
   pair<double,double> k;
-  
+
   bool operator == (const state &s2) const {
     return ((x == s2.x) && (y == s2.y));
   }
-  
+
   bool operator != (const state &s2) const {
     return ((x != s2.x) || (y != s2.y));
   }
-  
+
   bool operator > (const state &s2) const {
     if (k.first-0.00001 > s2.k.first) return true;
     else if (k.first < s2.k.first-0.00001) return false;
@@ -46,14 +46,14 @@ class state {
     else if (k.first > s2.k.first) return false;
     return k.second < s2.k.second + 0.00001;
   }
-  
+
 
   bool operator < (const state &s2) const {
     if (k.first + 0.000001 < s2.k.first) return true;
     else if (k.first - 0.000001 > s2.k.first) return false;
     return k.second < s2.k.second;
   }
-   
+
 };
 
 struct ipoint2 {
@@ -88,9 +88,9 @@ typedef hash_map<state, float, state_hash, equal_to<state> > ds_oh;
 
 
 class Dstar {
-  
+
  public:
-    
+
   Dstar();
   void   init(int sX, int sY, int gX, int gY);
   void   updateCell(int x, int y, double val);
@@ -103,15 +103,15 @@ class Dstar {
   void setObstacles(Mat obstacles);
 
   list<state> getPath();
-  
+
  private:
-  
+
   list<state> path;
 
   double C1;
   double k_m;
   state s_start, s_goal, s_last;
-  int maxSteps;  
+  int maxSteps;
 
   ds_pq openList;
   ds_ch cellHash;
@@ -133,7 +133,7 @@ class Dstar {
   state  calculateKey(state u);
   void   getSucc(state u, list<state> &s);
   void   getPred(state u, list<state> &s);
-  double cost(state a, state b); 
+  double cost(state a, state b);
   bool   occupied(state u);
   bool   isValid(state u);
   float  keyHashCode(state u);

@@ -1,52 +1,43 @@
 // based on DstarDraw.cpp by James Neufeld (neufeld@cs.ualberta.ca)
 // Author: Stefano Rosa
-// @TODO: dimensions of the map, get map from ros, put everything in world coordinates,
-//        add costs to cells, publish waypoints  
-// 
-//
+// @TODO: put everything in world coordinates, add costs to cells
 
 
 #include "ros/ros.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "tf/transform_listener.h"
 #include "nav_msgs/OccupancyGrid.h"
-#include <unistd.h>
-#include "Dstar.h"
 #include "mission_planner_msgs/CoordinateArray.h"
 #include "mission_planner_msgs/Coordinate.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
-#include "opencv2/core/core.hpp"
+#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include <unistd.h>
+#include "Dstar.h"
 
 using namespace cv;
 
+// parameters
+int scale = 1;      // map scale (default 1 m/pixel)
+int inflation=1;    // obstacles inflation radius (default 1m, should be >= GPS accuracy)
+
+Dstar *dstar;
 int hh, ww;
 bool ok = true;
-
-
-int window; 
-Dstar *dstar;
-
-int scale = 1;
+int window;
 int mbutton = 0;
 int mstate = 0;
-
 bool b_autoreplan = false;
-
-int inflation=1;
-
-// things to pub wp
 
 list<waypoint> returned_wp;
 ros::Publisher wp_pub;
 
-// map info
-  float resolution;
-  int width;
-  int height;
-  geometry_msgs::Pose origin;
+float resolution;
+int width;
+int height;
+geometry_msgs::Pose origin;
 
 
 
@@ -55,11 +46,8 @@ void main_loop()
 
   while(ros::ok())
   {
-    if (b_autoreplan) 
-      {
+    if (b_autoreplan)
         dstar->replan();
-        //dstar->getWaypoints();
-      }
 
     Mat result=dstar->draw(scale);
     if(result.cols>0 && result.rows>0)
@@ -88,43 +76,6 @@ void main_loop()
   }
 }
 
-void main_op()
-{
-while(ros::ok())
-  {
-    if (b_autoreplan) 
-      {
-        dstar->replan();
-        //dstar->getWaypoints();
-      }
-
-    Mat result=dstar->draw(scale);
-    if(result.cols>0 && result.rows>0)
-      imshow("ODOMI",result);
-    /*char key=cvWaitKey(10);
-    switch(key) {
-    case 'q':
-    case 'Q':
-     destroyAllWindows();
-      exit(0);
-      break;
-    case 'r':
-    case 'R':
-      dstar->replan();
-      break;
-    case 'a':
-    case 'A':
-      b_autoreplan = !b_autoreplan;
-      break;
-    case 'c':
-    case 'C':
-      dstar->init(40,50,140, 90);
-      break;
-    }*/
-dstar->init(0,0,140, 90);
-    ros::spinOnce();
-  }
-}
 
 
 void mouseFunc(int event, int x, int y, int flags, void* userdata)
@@ -149,81 +100,80 @@ void mouseFunc(int event, int x, int y, int flags, void* userdata)
      }
      else if ( event == EVENT_MOUSEMOVE )
      {
-          
 
      }
 }
 
 
 
-void loadBuildings(string filename)
-{
-  Mat buildings=imread(filename,0);  
-  resize(buildings,buildings,Size(800/scale,600/scale));
-  threshold( buildings, buildings, 100, 255,0 );
+// void loadBuildings(string filename)
+// {
+//   Mat buildings=imread(filename,0);
+//   resize(buildings,buildings,Size(800/scale,600/scale));
+//   threshold( buildings, buildings, 100, 255,0 );
 
-  int morph_elem = MORPH_ELLIPSE;
-int morph_size = inflation;
-  Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
-    morphologyEx( buildings, buildings, 0, element );
- 
-  dstar->setObstacles(buildings);
+//   int morph_elem = MORPH_ELLIPSE;
+// int morph_size = inflation;
+//   Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+//     morphologyEx( buildings, buildings, 0, element );
 
-}
+//   dstar->setObstacles(buildings);
 
-void loadLte(string filename)
-{
-  Mat lte=imread(filename,0);  
-  resize(lte,lte,Size(800/scale,600/scale));
-//imshow("build",buildings); cvWaitKey(0);
-  for(int i=0;i<lte.cols;i++)
-      for(int j=0;j<lte.rows;j++)
-      {
-        int x=i; int y=j;
-  // y = hh -y+scale/2;
-  // x += scale/2;
-  
-  // y /= scale;
-  // x /= scale;
-  
-  unsigned char cost= lte.at<unsigned char>(j,i);  
-  if(cost < 200){
-      dstar->updateCell(x, y, cost/100.0);
-      printf("cost %f\n",cost/100.0);
-  }
-  }
-}
+// }
 
-void loadLteObstacles(string filename)
-{
-  Mat lte=imread(filename,0);  
-  resize(lte,lte,Size(800/scale,600/scale));
-//imshow("build",buildings); cvWaitKey(0);
-  for(int i=0;i<lte.cols;i++)
-      for(int j=0;j<lte.rows;j++)
-      {
-        int x=i; int y=j;
-  // y = hh -y+scale/2;
-  // x += scale/2;
-  
-  // y /= scale;
-  // x /= scale;
-  
-  unsigned char cost= lte.at<unsigned char>(j,i);  
-  if(cost < 10){
-      dstar->updateCell(x, y, -2);
-      
-  }
-  }
-}
+// void loadLte(string filename)
+// {
+//   Mat lte=imread(filename,0);
+//   resize(lte,lte,Size(800/scale,600/scale));
+// //imshow("build",buildings); cvWaitKey(0);
+//   for(int i=0;i<lte.cols;i++)
+//       for(int j=0;j<lte.rows;j++)
+//       {
+//         int x=i; int y=j;
+//   // y = hh -y+scale/2;
+//   // x += scale/2;
+
+//   // y /= scale;
+//   // x /= scale;
+
+//   unsigned char cost= lte.at<unsigned char>(j,i);
+//   if(cost < 200){
+//       dstar->updateCell(x, y, cost/100.0);
+//       printf("cost %f\n",cost/100.0);
+//   }
+//   }
+// }
+
+// void loadLteObstacles(string filename)
+// {
+//   Mat lte=imread(filename,0);
+//   resize(lte,lte,Size(800/scale,600/scale));
+// //imshow("build",buildings); cvWaitKey(0);
+//   for(int i=0;i<lte.cols;i++)
+//       for(int j=0;j<lte.rows;j++)
+//       {
+//         int x=i; int y=j;
+//   // y = hh -y+scale/2;
+//   // x += scale/2;
+
+//   // y /= scale;
+//   // x /= scale;
+
+//   unsigned char cost= lte.at<unsigned char>(j,i);
+//   if(cost < 10){
+//       dstar->updateCell(x, y, -2);
+
+//   }
+//   }
+// }
 
 
 void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
 {
-  cout << "###received map\n";
+  ROS_INFO("odomi_path_planner: received map");
 
   nav_msgs::MapMetaData info=map->info;
-  
+
   resolution= info.resolution;
   width = info.width;
   height = info.height;
@@ -234,7 +184,6 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
   obstacles.setTo(255);
   dstar->init(0,0,width,height);
 
-  //obstacles=Scalar(127);
   for(int i=0;i<width;i++)
     for(int j=0;j<height;j++)
     {
@@ -246,13 +195,11 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
         obstacles.at<unsigned char>(height-1-j,i)=255;
     }
 
-  //imshow("obstacles",obstacles);
-  
   resize(obstacles,obstacles,Size(obstacles.cols/scale,obstacles.rows/scale));
 
-  rectangle(obstacles,Point(0,0),Point(obstacles.cols-1,obstacles.rows-1),0,1);	
-  circle(obstacles,Point(0,0),8,255,-1);    
-  circle(obstacles,Point(width-1,height-1),8,255,-1);  
+  rectangle(obstacles,Point(0,0),Point(obstacles.cols-1,obstacles.rows-1),0,1);
+  circle(obstacles,Point(0,0),8,255,-1);
+  circle(obstacles,Point(width-1,height-1),8,255,-1);
 
   threshold( obstacles, obstacles, 100, 255,0 );
   //imshow("thresolded",obstacles);
@@ -266,49 +213,39 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
   for(int i=0;i<obstacles.cols;i++)
     for(int j=0;j<obstacles.rows;j++)
     {
-      unsigned char cost= obstacles.at<unsigned char>(j,i);  
+      unsigned char cost= obstacles.at<unsigned char>(j,i);
       if(cost<10)
 
         dstar->updateCell(i,j, -1);
 
 
-    }  
+    }
 
   mission_planner_msgs::CoordinateArray wp;
   mission_planner_msgs::Coordinate      wp_coordinate;
-  
+
   dstar->updateStart(0,0);
   dstar->updateGoal(width/scale,height/scale);
   dstar->replan();
 
-  // list<waypoints> 
-  
+  // list<waypoints>
+
   returned_wp = dstar->getWaypoints();
   ROS_INFO ("returned_wp %d\n ",returned_wp.size());
 
-  //Is it the right path ? 
-  if(returned_wp.size() < 3) 
+  //Is it the right path ?
+  if(returned_wp.size() < 3)
   {
-   
-   ROS_INFO ("---Goal not good replanning -----\n ");
 
-   //position.x = 
-   //position.y = position.y +10; 
+   ROS_WARN ("odomi_path_planner: planning failed, replanning");
+
+   //position.x =
+   //position.y = position.y +10;
 
 
   }
 
 
- /*  
-  
-  dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
-  dstar->replan();
-
-  // list<waypoints> 
-  
-  returned_wp = dstar->getWaypoints();
-  
-*/
 
 
   std::list<waypoint>::const_iterator iterator;
@@ -322,7 +259,7 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
 
   wp.waypoint.push_back(wp_coordinate);
   }
-  
+
 
 
   wp_pub.publish(wp);
@@ -338,7 +275,7 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
   cout << "###received map\n";
 
   nav_msgs::MapMetaData info=map->info;
-  
+
   resolution= info.resolution;
   width = info.width;
   height = info.height;
@@ -362,12 +299,12 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
     }
 
   //imshow("obstacles",obstacles);
-  
+
   resize(obstacles,obstacles,Size(obstacles.cols/scale,obstacles.rows/scale));
 
-  rectangle(obstacles,Point(0,0),Point(obstacles.cols-1,obstacles.rows-1),0,1); 
-  circle(obstacles,Point(0,0),8,255,-1);    
-  circle(obstacles,Point(width-1,height-1),8,255,-1);  
+  rectangle(obstacles,Point(0,0),Point(obstacles.cols-1,obstacles.rows-1),0,1);
+  circle(obstacles,Point(0,0),8,255,-1);
+  circle(obstacles,Point(width-1,height-1),8,255,-1);
 
   threshold( obstacles, obstacles, 100, 255,0 );
   //imshow("thresolded",obstacles);
@@ -381,48 +318,48 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
   for(int i=0;i<obstacles.cols;i++)
     for(int j=0;j<obstacles.rows;j++)
     {
-      unsigned char cost= obstacles.at<unsigned char>(j,i);  
+      unsigned char cost= obstacles.at<unsigned char>(j,i);
       if(cost<10)
 
         dstar->updateCell(i,j, -1);
 
 
-    }  
+    }
 
   mission_planner_msgs::CoordinateArray wp;
   mission_planner_msgs::Coordinate      wp_coordinate;
-  
+
   // dstar->updateStart(position.x/scale/resolution,position.y/scale/resolution);
   // dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
   dstar->replan();
 
-  // list<waypoints> 
-  
+  // list<waypoints>
+
   returned_wp = dstar->getWaypoints();
   ROS_INFO ("returned_wp %d\n ",returned_wp.size());
 
-  //Is it the right path ? 
-  if(returned_wp.size() < 3) 
+  //Is it the right path ?
+  if(returned_wp.size() < 3)
   {
-   
+
    ROS_INFO ("---Goal not good replanning -----\n ");
 
-   //position.x = 
-   //position.y = position.y +10; 
+   //position.x =
+   //position.y = position.y +10;
 
 
   }
 
 
- /*  
-  
+ /*
+
   dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
   dstar->replan();
 
-  // list<waypoints> 
-  
+  // list<waypoints>
+
   returned_wp = dstar->getWaypoints();
-  
+
 */
 
 /*
@@ -437,7 +374,7 @@ void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
 
   wp.waypoint.push_back(wp_coordinate);
   }
-  
+
 
 
   wp_pub.publish(wp);
@@ -452,8 +389,8 @@ void receiveGoal(const boost::shared_ptr<const geometry_msgs::PoseStamped> goal)
   mission_planner_msgs::Coordinate      wp_coordinate;
   geometry_msgs::Point position = goal->pose.position;
   geometry_msgs::Quaternion orientation = goal->pose.orientation;
-  cout << "###received goal (position): " << position.x << ' ' << position.y << ' ' << position.z << endl;
-  cout << "###received goal (orientation): " << orientation.x << ' ' << orientation.y << ' ' << orientation.z << ' ' << orientation.w <<endl;
+  ROS_INFO("received goal (position): %f %f %f" ,position.x,position.y,position.z);
+  ROS_INFO("received goal (orientation quaternion): %f %f %f %f",orientation.x ,orientation.y ,orientation.z << ,orientation.w);
   //cout << "convert to angle" << 2 * acos(orientation.w) << endl;
   /*tf::TransformListener listener;
 
@@ -469,41 +406,41 @@ void receiveGoal(const boost::shared_ptr<const geometry_msgs::PoseStamped> goal)
 
   //dstar->updateStart(100,100);
   //dstar->updateGoal((position.x - origin.position.x)/scale/resolution, height/scale-(position.y - origin.position.y)/scale/resolution);
-  
+
 
   while(ok){
 
   dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
   dstar->replan();
 
-  // list<waypoints> 
-  
+  // list<waypoints>
+
   returned_wp = dstar->getWaypoints();
   ROS_INFO ("returned_wp %d\n ",returned_wp.size());
 
-  //Is it the right path ? 
-  if(returned_wp.size() < 3) 
+  //Is it the right path ?
+  if(returned_wp.size() < 3)
   {
-   
-   ROS_INFO ("---Goal not good replanning -----\n ");
 
-   //position.x = 
-   position.y = position.y +10; 
+   ROS_WARN ("odomi_path_planner: planning failed, replanning");
+
+   //position.x =
+   position.y = position.y +10;
 
 
   } else ok = false;
 
   }
 
- /*  
-  
+ /*
+
   dstar->updateGoal(position.x/scale/resolution,position.y/scale/resolution);
   dstar->replan();
 
-  // list<waypoints> 
-  
+  // list<waypoints>
+
   returned_wp = dstar->getWaypoints();
-  
+
 */
 
 
@@ -514,11 +451,11 @@ void receiveGoal(const boost::shared_ptr<const geometry_msgs::PoseStamped> goal)
   wp_coordinate.latitude = (*iterator).y;
   wp_coordinate.longitude = (*iterator).x;
 
-  printf("wp lat %f wp lng %f\n", wp_coordinate.latitude, wp_coordinate.longitude);
+  ROS_INFO("waypoint lat %f wp lng %f\n", wp_coordinate.latitude, wp_coordinate.longitude);
 
   wp.waypoint.push_back(wp_coordinate);
   }
-  
+
 
 
   //wp_pub.publish(wp);
@@ -565,7 +502,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
   ros::Subscriber lte_sub;
 
-  
+
 
 
  namedWindow("ODOMI", 1);
@@ -573,14 +510,14 @@ int main(int argc, char **argv) {
 setMouseCallback("ODOMI", mouseFunc, NULL);
 //createTrackbar("inflation", "ODOMI", &inflation, 9);
   // // init glut
-  // glutInit(&argc, argv);  
-  // glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);  
-  // glutInitWindowSize(800, 600);  
-  // glutInitWindowPosition(20, 20);  
-    
-  // window = glutCreateWindow("Dstar Visualizer");  
-  
-  // glutDisplayFunc(&DrawGLScene);  
+  // glutInit(&argc, argv);
+  // glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+  // glutInitWindowSize(800, 600);
+  // glutInitWindowPosition(20, 20);
+
+  // window = glutCreateWindow("Dstar Visualizer");
+
+  // glutDisplayFunc(&DrawGLScene);
   // glutIdleFunc(&DrawGLScene);
   // glutReshapeFunc(&ReSizeGLScene);
   // glutKeyboardFunc(&keyPressed);
@@ -590,11 +527,11 @@ setMouseCallback("ODOMI", mouseFunc, NULL);
   // InitGL(800, 600);
 
 
-  
+
 
   dstar = new Dstar();
   dstar->init(30,50,100, 90);
-  
+
   ros::Subscriber goal_sub = nh.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1,  receiveGoal);
   ros::Subscriber start_sub = nh.subscribe<geometry_msgs::PoseStamped>("/move_base_simple/start", 1,  receiveStart);
   ros::Subscriber obstacles_sub = nh.subscribe<nav_msgs::OccupancyGrid>("/map", 2,  receiveMap); //mission map
@@ -618,7 +555,7 @@ setMouseCallback("ODOMI", mouseFunc, NULL);
   printf("right mouse click - move start to cell\n");
   printf("----------------------------------\n");*/
 
-  //glutMainLoop();  
+  //glutMainLoop();
 
  main_loop();
    //main_op();
