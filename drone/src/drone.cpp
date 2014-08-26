@@ -1,15 +1,10 @@
-/* reference
-// http://answers.ros.org/question/10905/can-a-node-act-as-a-server-and-a-publisher/
-*/
 #include "ros/ros.h"
 #include <mission_planner_msgs/Drone.h>
 #include <mission_planner_msgs/getCurrentPosition.h>
 #include <mission_planner_msgs/telemetry.h>
 #include <mission_planner_msgs/SensorPacket.h>
+
 #include <ctime>
-/*#include "gui_msg/Drone.h"
-#include "gui_msg/SensorPacket.h"
-*/
 #include <stdlib.h> // abs()
 #include <cmath>
 
@@ -23,14 +18,11 @@ ros::Publisher ROSGUI_drone;
 // for telemetry activation
 ros::ServiceServer telemetryActivation;
 
-mission_planner_msgs::SensorPacket msg;//istanzio il messaggio del publisher
+mission_planner_msgs::SensorPacket msg;
 
 bool first;
 
 
-
-////////////////////////////mission->gps_waypoint[i].latitude
-///////////////////////////////////////////////////////////////////////////
 
   void interpola(float GpsLatA,float GpsLngA,float GpsLatB,float GpsLngB, const mission_planner_msgs::Drone::ConstPtr& mission){
 
@@ -41,15 +33,15 @@ bool first;
   int n=10;//per randnum
   int randnum;
   randnum=(int)((2*(rand()%n))-(n));//generate rnd number tra n e -n
-  
+
   //frequenza di lavoro
   ros::Rate loop_rate(65);
-  
-  ROS_INFO("Il drone è partito");
+
+  ROS_INFO("The UAV is flying");
   int i=0;
   while (ros::ok() && i<=k)
   {
-    //simulo il percorso    
+    //simulo il percorso
     //gps corrente
     msg.c_latit=GpsLatA+(((GpsLatB-GpsLatA)/(k))*(k-(k-i)));
     msg.c_longit=GpsLngA+(((GpsLngB-GpsLngA)/(k))*(k-(k-i)));
@@ -59,9 +51,9 @@ bool first;
     /*
     msg.h_latit=45.079006;//float64
     msg.h_longit=7.61466;//float64
-    msg.h_altit=0;//int32 
+    msg.h_altit=0;//int32
     */
-   
+
     msg.current_wayp=0;//uint8
     //msg.tot_wayp=mission->gps_waypoint.size();//uint8
     msg.altimeter=msg.c_altit;//int16 altimetro
@@ -75,12 +67,12 @@ bool first;
 
     //pubblico il mex
     ROSGUI_drone.publish(msg);
-    
+
     ros::spinOnce();
     loop_rate.sleep();
     i++;
   }
-  ROS_INFO("Il drone è arrivato");  
+  ROS_INFO("The UAV has arrived");
 
 
 
@@ -91,15 +83,15 @@ bool first;
 
 	void catchMission(const mission_planner_msgs::Drone::ConstPtr& mission)
 	{
-  
+
 	for(int i=0; i <= mission->movements.size(); i++){
 
 	if(mission->movements[i].type == 4 || mission->movements[i].type == 6 ){ // go to on circle or circling with a set radius
-	
-	ROS_INFO("Travelling without moving... ;) \n");
+
+	ROS_INFO("Travelling without moving... ;)");
 	interpola(msg.c_latit,msg.c_longit,mission->movements[i].target_position.latitude,mission->movements[i].target_position.longitude, mission);
 	}
-	
+
 	if( mission->movements[i].type == 5){//Hover
 	}
 
@@ -110,17 +102,17 @@ bool first;
 
 	bool telemtryActivation(mission_planner_msgs::telemetry::Request  &req, mission_planner_msgs::telemetry::Response &res)
 	{
-		
-	if(req.activate) // if it s true	
+
+	if(req.activate) // if it s true
 	{
-	
-	ROS_INFO("Sending telemetry \n");
-	res.resp = true;	
-	
+
+	ROS_INFO("Sending telemetry");
+	res.resp = true;
+
 	first = true;
 	if(first)
 	{
-	    //simulo il percorso    
+	    //simulo il percorso
 	    //gps corrente
 	    msg.c_latit=45.062238;//float64
    	    msg.c_longit=7.663083;//float64
@@ -130,9 +122,9 @@ bool first;
 	    msg.h_latit=45.062238;//float64
 	    msg.h_longit=7.663083;//float64
 	    msg.h_altit=0;//int32
-   
+
 	    msg.current_wayp=0;//uint8
-	    
+
 	    msg.altimeter=msg.c_altit;//int16 altimetro
 	    msg.fly_time=0;//uint16
 	    msg.grd_speed=0;//uint8
@@ -145,22 +137,22 @@ bool first;
 	    //pubblico il mex
 	    ROSGUI_drone.publish(msg);
 	    first = false;
-	 }   
-	   
-  	
+	 }
+
+
 
 	return true;
 
 	}else
 
 	{
-	ROS_INFO("Getting some problems...\n");
-	res.resp = false;	
+	ROS_INFO("Having some problems...");
+	res.resp = false;
 	return false;
 	}
-	
-	}	
-	
+
+	}
+
 
 	int main(int argc, char **argv)
 	{
@@ -177,7 +169,7 @@ bool first;
 		//publisher feedback
   		ROSGUI_drone = n_pub->advertise<mission_planner_msgs::SensorPacket>("feedback", 1000);
 
-  		ROS_INFO("Ready to catch a mission.");
+  		ROS_INFO("Ready to receive a mission.");
   		ros::spin();
   		return 0;
 	}

@@ -5,8 +5,8 @@
 #include <mission_planner_msgs/getCurrentPosition.h>
 #include <mission_planner_msgs/telemetry.h>
 #include <mission_planner_msgs/SensorPacket.h>
+
 #include <ctime>
-//#include <pthread.h>
 #include <math.h>
 #include <float.h>
 
@@ -32,22 +32,22 @@ class MissionPlanner
       mission_pub= n.advertise<mission_planner_msgs::Drone>("drone", 1, false);
 
       waypoint_pub= n.advertise<mission_planner_msgs::CoordinateArray>("mp_waypoints", 1, false);
-	
+
       timer = n.createTimer(ros::Duration(1.0), &MissionPlanner::timerCallback, this);
-	
+
       sensor = n.subscribe("feedback", 1, &MissionPlanner::feedbackCallback, this);
       //gui_waypoints = n.subscribe("gui_waypoints", 1, &MissionPlanner::waypointCallback, this);
       waypoints = n.subscribe("waypoints", 1, &MissionPlanner::waypointCallback, this);
 
       telemetry_activated = false;
-	
-      //mutex1 = PTHREAD_MUTEX_INIZIALIZER;	
+
+      //mutex1 = PTHREAD_MUTEX_INIZIALIZER;
       time0 = time(NULL);
       diff = abs(time(NULL) - time0);
-	
+
       first_=true;
-     
-     	
+
+
     }
 
     ~MissionPlanner(){
@@ -96,7 +96,7 @@ class MissionPlanner
 	double R = 6378137;
 	double PI = 3.14159265358979323846;
 	double val1, val2, val3, val4, val5;
-	
+
 	double home_lat_rad = home.latitude *(PI/180);
 	double home_lon_rad = home.longitude *(PI/180);
 
@@ -130,7 +130,7 @@ class MissionPlanner
 	new_target.latitude = dlat*(180/PI)*rapporto + home.latitude;
 	new_target.longitude = dlon*(180/PI)*rapporto + home.longitude;
 	new_target.altitude = target.altitude;
-	
+
 	ROS_INFO("New Target lat  = %f, long = %f", new_target.latitude, new_target.longitude);
 
 
@@ -138,10 +138,10 @@ class MissionPlanner
 
 
 
-    } 
+    }
 
     void waypointCallback(const mission_planner_msgs::CoordinateArrayConstPtr& coords){
-	
+
 	int size = coords->waypoint.size() + 4;
 
 	//publish drone topic
@@ -162,7 +162,7 @@ class MissionPlanner
 
 	for(int i = 1; i < size-3 ; i++){
 
-		// GO TO WAYPOINT 
+		// GO TO WAYPOINT
 		drone.movements[i].name = "go to waypoint";
 		drone.movements[i].type = 4;
 		drone.movements[i].target_position.latitude=coords->waypoint[i-1].latitude;
@@ -179,7 +179,7 @@ class MissionPlanner
 	drone.movements[size-3].type = 5;
 	//drone.movements[size-3].duration = 3600;
 
-	// GO TO LANDING POINT 
+	// GO TO LANDING POINT
 	drone.movements[size-2].name = "go to landing point";
 	drone.movements[size-2].type = 4;
 	drone.movements[size-2].target_position.latitude=h_lat;
@@ -187,7 +187,7 @@ class MissionPlanner
 	drone.movements[size-2].target_position.altitude=15.0;
 	drone.movements[size-2].strategy = 0;
 
-	// LAND 
+	// LAND
 	drone.movements[size-1].name = "land";
 	drone.movements[size-1].type = 3;
 	drone.movements[size-1].target_position.heading=0; */
@@ -198,7 +198,7 @@ class MissionPlanner
 
 
     void feedbackCallback(const mission_planner_msgs::SensorPacketConstPtr& packet){
-	
+
         h_lat = packet->h_latit;
         h_lon = packet->h_longit;
        // pthread_mutex_lock(&mutex1);
@@ -210,8 +210,8 @@ class MissionPlanner
 
 
     bool activate_telemetry(){
-	
-	
+
+
         ros::ServiceClient telem_service = n.serviceClient<mission_planner_msgs::telemetry>("/telemetry_activation");
 	mission_planner_msgs::telemetry srv;
 	srv.request.activate = true;
@@ -241,7 +241,7 @@ class MissionPlanner
       		diff = abs(time(NULL) - time0);
 		if(diff > max_time){
 
-			ROS_WARN(" telemetry not sensed for %d sec , try activating ...", diff); 
+			ROS_WARN(" telemetry not sensed for %d sec , try activating ...", diff);
 			telemetry_activated = false;
 			first_ = true;
 
@@ -302,13 +302,13 @@ class MissionPlanner
         coords.waypoint[1].latitude = new_target.latitude;
         coords.waypoint[1].longitude = new_target.longitude;
         coords.waypoint[1].altitude = new_target.altitude;
-	
+
 	// HOVER
 	drone.movements[2].name = "Hover and wait";
 	drone.movements[2].type = 5;
 	//drone.movements[2].duration = 3600;
 
-	// CIRCLING WITH A SET RADIUS 
+	// CIRCLING WITH A SET RADIUS
 	drone.movements[3].name = "Circling with a set radius";
 	drone.movements[3].type = 6;
 	drone.movements[3].target_position.latitude=target.latitude;
@@ -325,7 +325,7 @@ class MissionPlanner
 	drone.movements[4].type = 5;
 	//drone.movements[4].duration = 3600;
 
-	// GO TO LANDING POINT 
+	// GO TO LANDING POINT
 	drone.movements[5].name = "go to landing point";
 	drone.movements[5].type = 4;
 	drone.movements[5].target_position.latitude=h_lat;
@@ -333,7 +333,7 @@ class MissionPlanner
 	drone.movements[5].target_position.altitude=15.0;
 	drone.movements[5].strategy = 0;
 
-	// LAND 
+	// LAND
 	drone.movements[6].name = "land";
 	drone.movements[6].type = 3;
 	drone.movements[6].target_position.heading=0;
@@ -356,7 +356,7 @@ private:
     double h_lon;
     bool telemetry_activated, first_;
     time_t diff, time0;
-	
+
    int max_time;
    // pthread_mutex_t mutex1;
 };
