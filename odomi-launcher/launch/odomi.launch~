@@ -1,0 +1,19 @@
+<launch>
+
+  <node pkg="drone" name="drone" type="drone">
+  </node>
+
+ <node pkg="mission_planner" name="mission_planner" type="mission_planner">
+ </node>
+
+ <node pkg="odomi_path_planner" name="odomi_path_planner" type="odomi_path_planner">
+ </node>
+
+ <node pkg="open_data_driver" name="open_data_driver" type="open_data_driver">
+ </node>
+
+ <node pkg="pubstartgoal" name="pubstartgoal" type="pubstartgoal">
+ </node>
+
+ <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" 7>
+</launch>

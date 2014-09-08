@@ -1,0 +1,8 @@
+prefix=/home/enrico/catkin_ws/src/open_data_msg/build/devel
+
+Name: open_data_msg
+Description: Description of open_data_msg
+Version: 0.0.0
+Cflags: -I/home/enrico/catkin_ws/src/open_data_msg/include
+Libs: -L/home/enrico/catkin_ws/src/open_data_msg/build/devel/lib -lopen_data_msg
+Requires: message_runtime roscpp rospy std_msgs

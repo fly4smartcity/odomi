@@ -1,0 +1,25 @@
+   # GPS_current_position
+   float64 c_longit
+   float64 c_latit	
+   int32 c_altit
+   # GPS_home_position
+   float64 h_longit
+   float64 h_latit
+   int32 h_altit
+   # GPS_target_position
+   float64 t_longit
+   float64 t_latit
+   int32 t_altit
+   # Flight_status 
+   uint8 current_wayp
+   uint8 tot_wayp
+   int16 altimeter
+   uint16 fly_time
+   uint8 grd_speed
+   int16 top_speed
+   # Attitude
+   int16 compass_heading
+   int8 roll_ang
+   int8 pitch_ang
+   uint8 battery
+

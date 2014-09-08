@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "open_data_msg")
+set(open_data_msg_MAINTAINER "enrico <enrico@todo.todo>")
+set(open_data_msg_DEPRECATED "")
+set(open_data_msg_VERSION "0.0.0")
+set(open_data_msg_BUILD_DEPENDS "message_generation" "roscpp" "rospy" "std_msgs")
+set(open_data_msg_RUN_DEPENDS "message_runtime" "roscpp" "rospy" "std_msgs")
+set(open_data_msg_BUILDTOOL_DEPENDS "catkin")

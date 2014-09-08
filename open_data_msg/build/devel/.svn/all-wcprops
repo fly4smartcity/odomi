@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel
+END
+setup.bash
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel/setup.bash
+END
+env.sh
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel/env.sh
+END
+_setup_util.py
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel/_setup_util.py
+END
+setup.zsh
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel/setup.zsh
+END
+.catkin
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel/.catkin
+END
+.rosinstall
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel/.rosinstall
+END
+setup.sh
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/build/devel/setup.sh
+END

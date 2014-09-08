@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/enrico/catkin_ws/src/open_data_msg/build/devel/setup.sh

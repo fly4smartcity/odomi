@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json
+END
+json.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/json.h
+END
+value.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/value.h
+END
+writer.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/writer.h
+END
+features.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/features.h
+END
+reader.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/reader.h
+END
+config.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/config.h
+END
+autolink.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/autolink.h
+END
+forwards.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/repos/piattaforma/!svn/ver/28/open_data/open_data_driver/include/json/forwards.h
+END

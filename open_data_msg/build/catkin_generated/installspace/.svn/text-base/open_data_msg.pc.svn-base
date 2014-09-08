@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: open_data_msg
+Description: Description of open_data_msg
+Version: 0.0.0
+Cflags: -I/usr/local/include
+Libs: -L/usr/local/lib -lopen_data_msg
+Requires: message_runtime roscpp rospy std_msgs

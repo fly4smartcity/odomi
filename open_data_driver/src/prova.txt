@@ -1,0 +1,66 @@
+#include <iostream>
+#include <sstream>
+#include <read/read.h>
+#include <csv/csv_parser.hpp>
+#include <json/json.h>
+
+#include <opendata/Alberate.h>
+#include <opendata/Altezze.h>
+#include <opendata/PotenzaSegnale.h>
+
+
+int main(int argc, char **argv)
+{
+	PotenzaSegnale ps;
+
+	//for(int i=0;i<7;i++)
+	//ps.getPotenzaSegnale(7.6853,45.0705);
+
+	Altezze h;
+	//h.getAltezze();
+	//altezze con EPSG:3003
+	//h.getAltezze(1394000,4990000,1395000,4991000);
+
+	//altezze con EPSG:4326 -> WGS84
+	h.getAltezze("7.6609","45.0516","7.6500","45.0800");
+
+		const char * filename = "calendar.txt";
+        const char field_terminator = ',';
+        const char line_terminator  = '\n';
+        const char enclosure_char   = '"';
+
+        csv_parser file_parser;
+
+        file_parser.set_skip_lines(1);
+		file_parser.init(filename);
+		
+		file_parser.set_enclosed_char(enclosure_char, ENCLOSURE_OPTIONAL);
+		
+		file_parser.set_field_term_char(field_terminator);
+        file_parser.set_line_term_char(line_terminator);
+
+        unsigned int row_count = 1U;
+
+        while(file_parser.has_more_rows())
+        {
+                unsigned int i = 0;
+
+                csv_row row = file_parser.get_row();
+
+                for (i = 0; i < row.size(); i++)
+                {
+                        printf("COLUMN %02d : %s\n", i + 1U, row[i].c_str());
+                }
+
+                printf("====================================================================\n");
+                printf("END OF ROW %02d\n", row_count);
+                printf("====================================================================\n");
+
+                row_count++;
+        }
+
+ return 0;
+}
+
+
+/

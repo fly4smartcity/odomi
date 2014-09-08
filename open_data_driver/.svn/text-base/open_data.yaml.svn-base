@@ -1,0 +1,6 @@
+db_name: trasporti
+db_psw: password
+db_server: localhost
+db_user: root
+train_filename: sfm_torino_it.zip
+tram_filename: torino_it.zip

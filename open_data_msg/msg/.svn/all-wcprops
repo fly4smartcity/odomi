@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/msg
+END
+Parameter.msg
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/msg/Parameter.msg
+END
+Polygon
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/msg/Polygon
+END
+Status.msg
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/msg/Status.msg
+END
+Coordinate.msg
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/msg/Coordinate.msg
+END
+Data.msg
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/msg/Data.msg
+END
+Open_data.msg
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/repos/piattaforma/!svn/ver/29/open_data/open_data_msg/msg/Open_data.msg
+END
