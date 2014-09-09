@@ -1,7 +1,3 @@
-// functions that implement TOMA-DARA algorithm
-// GPS to meter 
-// meter to pixels
-
 #include <math.h>
 #include <string.h>
 #include <fstream>
@@ -12,7 +8,7 @@
 namespace mygeolib_tool {
 
   const double pi = 3.14159265358979323846;
-  const double map_ext =  100;
+  const double map_ext =  200;
   /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
   /*::  This function converts decimal degrees to radians             :*/
   /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/

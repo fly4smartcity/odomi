@@ -1,14 +1,5 @@
-// functions that implement TOMA-DARA algorithm
-// GPS to meter 
-// meter to pixels
 
-// #include <math.h>
-// #include <string.h>
-// #include <fstream>
-// #include <ctime>
  #include "mygeolib.h"
-// #define pi 3.14159265358979323846
-// #define map_ext 100
 
 namespace mygeolib_tool {
 

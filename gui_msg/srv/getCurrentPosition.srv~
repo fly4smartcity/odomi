@@ -1,0 +1,5 @@
+gui_msg/Coordinate[] multi_target
+float64 latitude
+float64 longitude
+---
+bool res

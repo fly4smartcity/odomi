@@ -1,0 +1,105 @@
+#include "ros/ros.h"
+#include "gui_msg/msg_gui_ros.h"
+#include "gui_msg/msg_path_ros_gui.h"//messaggio di path
+
+/**
+ * This tutorial demonstrates simple receipt of messages over the ROS system.
+ */
+void sendPath()
+{
+  int k;//costante per il numero di punti
+
+
+  //coordinate GPS home e goal
+  float GpsLatHome=45.05;
+  float GpsLngHome=7.64;
+  float GpsLatGoal=45.08;
+  float GpsLngGoal=7.68;
+  //var per inviare coordinate gps drone
+  float GpsLatDrone;
+  float GpsLngDrone;  
+
+  ros::NodeHandle n;
+
+  ros::Publisher ROSGUI_topic = n.advertise<gui_msg::msg_path_ros_gui>("ros_gui_path", 1000);
+
+  ros::Rate loop_rate(1);
+  gui_msg::msg_path_ros_gui msg;//istanzio il messaggio
+
+  /**************
+  /INVIO IL PERCORSO
+  /*************/
+
+/*
+float64 GPSLATHOME
+float64 GPSLNGHOME
+float64 GPSLATP1
+float64 GPSLNGP1
+float64 GPSLATP2
+float64 GPSLNGP2
+float64 GPSLATP3
+float64 GPSLNGP3
+float64 GPSLATP4
+float64 GPSLNGP4
+float64 GPSLATP5
+float64 GPSLNGP5
+float64 GPSLATGOAL
+float64 GPSLNGGOAL
+*/
+int i=0;
+while (ros::ok() && i<=1)//ne invio 2 perche' il primo lo perdo sempre
+{
+  k=5;//HO 5 PUNTI IN MEZZO
+
+  //riempo il messaggio  
+  msg.GPSLATHOME = GpsLatHome;//float64
+  msg.GPSLNGHOME = GpsLngHome;//float64
+  //INTERPOLO I PUNTI
+  msg.GPSLATP1 = GpsLatHome+(((GpsLatGoal-GpsLatHome)/(k+1))*(k-(k-1)));//float64
+  msg.GPSLNGP1 = GpsLngHome+(((GpsLngGoal-GpsLngHome)/(k+1))*(k-(k-1)));//float64
+  msg.GPSLATP2 = GpsLatHome+(((GpsLatGoal-GpsLatHome)/(k+1))*(k-(k-2)));//float64
+  msg.GPSLNGP2 = GpsLngHome+(((GpsLngGoal-GpsLngHome)/(k+1))*(k-(k-2)));//float64
+  msg.GPSLATP3 = GpsLatHome+(((GpsLatGoal-GpsLatHome)/(k+1))*(k-(k-3)));//float64
+  msg.GPSLNGP3 = GpsLngHome+(((GpsLngGoal-GpsLngHome)/(k+1))*(k-(k-3)));//float64
+  msg.GPSLATP4 = GpsLatHome+(((GpsLatGoal-GpsLatHome)/(k+1))*(k-(k-4)));//float64
+  msg.GPSLNGP4 = GpsLngHome+(((GpsLngGoal-GpsLngHome)/(k+1))*(k-(k-4)));//float64
+  msg.GPSLATP5 = GpsLatHome+(((GpsLatGoal-GpsLatHome)/(k+1))*(k-(k-5)));//float64
+  msg.GPSLNGP5 = GpsLngHome+(((GpsLngGoal-GpsLngHome)/(k+1))*(k-(k-5)));//float64
+
+  msg.GPSLATGOAL = GpsLatGoal;//float64
+  msg.GPSLNGGOAL = GpsLngGoal;//float64
+  //invio
+  ROSGUI_topic.publish(msg);
+  //STAMPO quello inviato    
+  ROS_INFO("\nGPSLATHOME:\t%f\nGPSLNGHOME:\t%f\nGPSLATP1:\t%f\nGPSLNGP1:\t%f\nGPSLATP2:\t%f\nGPSLNGP2:\t%f\nGPSLATP3:\t%f\nGPSLNGP3:\t%f\nGPSLATP4:\t%f\nGPSLNGP4:\t%f\nGPSLATP5:\t%f\nGPSLNGP5:\t%f\nGPSLATPGOAL:\t%f\nGPSLNGPGOAL:\t%f",msg.GPSLATHOME,msg.GPSLNGHOME,msg.GPSLATP1,msg.GPSLNGP1,msg.GPSLATP2,msg.GPSLNGP2,msg.GPSLATP3,msg.GPSLNGP3,msg.GPSLATP4, msg.GPSLNGP4,msg.GPSLATP5,msg.GPSLNGP5,msg.GPSLATGOAL,msg.GPSLNGGOAL);
+ros::spinOnce();
+loop_rate.sleep();
+ i++;
+}
+  /*************/
+}
+void requestCallback(const gui_msg::msg_gui_ros::ConstPtr& msg)
+{
+  switch (msg->codice)
+  {
+    case 2: sendPath();
+            break;
+    case 3: updateDrone();
+            break;     
+    default: ROS_INFO("I heard: codice [%ld] messaggio [%s]", msg->codice, msg->messaggio.c_str());
+  }  
+}
+
+int main(int argc, char **argv)
+{
+  
+  ros::init(argc, argv, "listener");
+
+  ros::NodeHandle n;
+
+  ros::Subscriber sub = n.subscribe("gui_ros_msg", 1000, requestCallback);
+
+  ros::spin();
+
+  return 0;
+}

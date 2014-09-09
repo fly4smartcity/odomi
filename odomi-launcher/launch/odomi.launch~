@@ -1,19 +1,24 @@
 <launch>
 
-  <node pkg="drone" name="drone" type="drone">
+  <node pkg="drone" name="drone" type="drone" >
+  	<param name="latitude" type="double" value="45.062234" />
+  	<param name="longitude" type="double" value="7.662937" />
+  	<param name="altitude" type="double" value="15.0" />
   </node>
 
  <node pkg="mission_planner" name="mission_planner" type="mission_planner">
  </node>
 
  <node pkg="odomi_path_planner" name="odomi_path_planner" type="odomi_path_planner">
+<param name="bounding_box_extension" type="double" value="10.0" />
  </node>
 
  <node pkg="open_data_driver" name="open_data_driver" type="open_data_driver">
  </node>
 
  <node pkg="pubstartgoal" name="pubstartgoal" type="pubstartgoal">
+  	<param name="bounding_box_extension" type="double" value="10.0" />
  </node>
 
- <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" 7>
+ <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
 </launch>

@@ -24,6 +24,7 @@ using namespace mygeolib_tool;
 // parameters
 int scale = 1;      // map scale (default 1 m/pixel)
 int inflation=1;    // obstacles inflation radius (default 1m, should be >= GPS accuracy)
+double map_ext;
 
 Dstar *dstar;
 int hh, ww;
@@ -106,68 +107,6 @@ void mouseFunc(int event, int x, int y, int flags, void* userdata)
      }
 }
 
-
-
-// void loadBuildings(string filename)
-// {
-//   Mat buildings=imread(filename,0);
-//   resize(buildings,buildings,Size(800/scale,600/scale));
-//   threshold( buildings, buildings, 100, 255,0 );
-
-//   int morph_elem = MORPH_ELLIPSE;
-// int morph_size = inflation;
-//   Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
-//     morphologyEx( buildings, buildings, 0, element );
-
-//   dstar->setObstacles(buildings);
-
-// }
-
-// void loadLte(string filename)
-// {
-//   Mat lte=imread(filename,0);
-//   resize(lte,lte,Size(800/scale,600/scale));
-// //imshow("build",buildings); cvWaitKey(0);
-//   for(int i=0;i<lte.cols;i++)
-//       for(int j=0;j<lte.rows;j++)
-//       {
-//         int x=i; int y=j;
-//   // y = hh -y+scale/2;
-//   // x += scale/2;
-
-//   // y /= scale;
-//   // x /= scale;
-
-//   unsigned char cost= lte.at<unsigned char>(j,i);
-//   if(cost < 200){
-//       dstar->updateCell(x, y, cost/100.0);
-//       printf("cost %f\n",cost/100.0);
-//   }
-//   }
-// }
-
-// void loadLteObstacles(string filename)
-// {
-//   Mat lte=imread(filename,0);
-//   resize(lte,lte,Size(800/scale,600/scale));
-// //imshow("build",buildings); cvWaitKey(0);
-//   for(int i=0;i<lte.cols;i++)
-//       for(int j=0;j<lte.rows;j++)
-//       {
-//         int x=i; int y=j;
-//   // y = hh -y+scale/2;
-//   // x += scale/2;
-
-//   // y /= scale;
-//   // x /= scale;
-
-//   unsigned char cost= lte.at<unsigned char>(j,i);
-//   if(cost < 10){
-//       dstar->updateCell(x, y, -2);
-
-//   }
-//   }
-// }
 
 
 void receiveMap(const boost::shared_ptr<const nav_msgs::OccupancyGrid> map)
@@ -430,7 +369,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "odomi_path_planner");
   ros::NodeHandle nh;
   ros::Subscriber lte_sub;
-
+  ros::NodeHandle private_nh("~");
+  private_nh.param("bounding_box_extension", map_ext, 200.00);
 
 
 

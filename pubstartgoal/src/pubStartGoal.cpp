@@ -28,50 +28,95 @@
 //#include <pcl/point_types.h>
 
 
-
-//#define pi 3.14159265358979323846
-//#define map_ext 100
-
 using namespace cv;
 using namespace std;
 using namespace mygeolib_tool;
 
- geometry_msgs::PoseStamped goal;
- geometry_msgs::PoseStamped start;
+class PubStartGoal
+{
+private: 
+
+  ros::NodeHandle n;
+  geometry_msgs::PoseStamped goal;
+  geometry_msgs::PoseStamped start;
  
- ros::Publisher goal_pub;
- ros::Publisher start_pub;
- ros::Publisher wp_pub;
- ros::Publisher map_pub;
+  // ros::Publisher goal_pub;
+  // ros::Publisher start_pub;
+  ros::Publisher wp_pub;
+  ros::Publisher map_pub;
+
+  ros::Subscriber goal_mp;
+  ros::Subscriber start_mp;
+  ros::Subscriber wp_mp;
+  ros::Subscriber od;
+
+  ros::ServiceClient bbox_service;
+
+  cv::Mat mappa;
+  Mat crop ;
+
+  int map_width;
+  int map_height;
+
+  double home_lat, goal_lat;
+  double home_lng, goal_lng;
+
+  double BB_home_lat,BB_home_lng, BB_goal_lat, BB_goal_lng;
+
+  double sgn_lat ; // sgn is 1 or -1
+  double sgn_lng ;
+
+  typedef vector <Point> Polygon;
+
+ 
+public:
+
+  double map_ext;
+
+  int paddingx; // multiple of 4 !!!
+  int paddingy;
+
+  int ready2odomi; 
+
+  PubStartGoal()
+  {
+
+  ready2odomi = 0 ; 
+
+  ros::NodeHandle private_nh("~");
+  private_nh.param("bounding_box_extension", map_ext, 200.00);
+
+  paddingx = map_ext; // multiple of 4 !!!
+  paddingy = map_ext;
+  
+  bbox_service = n.serviceClient<open_data_msg::BoundingBox>("bounding_box");
+
+  // goal_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 2,false);
+  // start_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/start", 2,false);
+  wp_pub    = n.advertise<mission_planner_msgs::CoordinateArray>("/waypoints", 2,false);
+  map_pub = n.advertise< nav_msgs::OccupancyGrid>("/map", 1,false);
 
 
- cv::Mat mappa;
- Mat crop ;
+  goal_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/gui_waypoints", 100, &PubStartGoal::subGoal, this);
+  start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, &PubStartGoal::subStart, this);
+  wp_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/2mp_wp", 1, &PubStartGoal::subWp, this);
+  od = n.subscribe<open_data_msg::Data>("/opendata", 100, &PubStartGoal::subOd, this);
+  
+  // ros::Rate loop_rate(10);
+ 
+  // //goal
+  // goal.header.frame_id = 'g';
+ 
+  
+  // start.header.frame_id = 's';
 
- int map_width;
- int map_height;
+  };
 
- double home_lat, goal_lat;
- double home_lng, goal_lng;
+  ~PubStartGoal(){
 
- double BB_home_lat,BB_home_lng, BB_goal_lat, BB_goal_lng;
+  };
 
- double sgn_lat ; // sgn is 1 or -1
- double sgn_lng ;
-
- int paddingx = 200; // multiple of 4 !!!
- int paddingy = 200;
-
-
- int ready2odomi = 0 ; 
- bool pub = false;
-
- float KV = 1.0706; // [px/m]
- float KO = 1.06853; // [px/m]
-
- typedef vector <Point> Polygon;
-
-
+ 
   void publishMap(Mat m) // publish to odomi_path_planner the map
   {
     
@@ -115,13 +160,10 @@ using namespace mygeolib_tool;
   }
 
 
-  void callServiceOpendata(String lab) {
+  void callServiceOpendata(String lab) {   // call open data service  for the bounding box
 
   String whatcall = lab;
-  // call open data service  for the bounding box
-  ros::NodeHandle n;
-  ros::ServiceClient bbox_service = n.serviceClient<open_data_msg::BoundingBox>("bounding_box");
-
+  
   open_data_msg::BoundingBox srv;
 
   srv.request.label = whatcall.c_str();
@@ -166,7 +208,7 @@ using namespace mygeolib_tool;
   sgn_lng = (goal_lng - home_lng)/sqrt((goal_lng - home_lng)*(goal_lng - home_lng));
 
 
-  // build bounding box extending home coord of a constant value (map_ext) towards long and lat
+  // build bounding box extending home coord at constant value (map_ext) towards long and lat
   // the same is done for target coord
   BB_home_lat = convGPS(home_lat, home_lng, map_ext*-1*sgn_lat, true); 
   BB_home_lng = convGPS(home_lat, home_lng, -1*map_ext*sgn_lng, false);
@@ -190,16 +232,12 @@ using namespace mygeolib_tool;
   goal.pose.position.x = distx;  // px = m * px/m
   goal.pose.position.y = disty;
   
-  // create map px = m
-
-
-
   mappa =  cv::Mat(Size(map_width + paddingy*2,map_height+ paddingy*2),CV_8UC1);
   mappa.setTo(255); // init white
   
   // ROS_INFO("Publishing target %f %f and home position %f %f \n",goal.pose.position.x, goal.pose.position.y, start.pose.position.x, start.pose.position.y );
    ROS_INFO("Distx %f disty %f DistxBB %f distyBB %f start_lat %f start_lng %f",distx,disty,distxBB,distyBB, start.pose.position.x,start.pose.position.y );
-  pub = true;
+  //pub = true;
 
 
   callServiceOpendata("alberate");
@@ -238,17 +276,6 @@ using namespace mygeolib_tool;
 
   }
 
-  //mo provo con la home in px se diventa gps
-/*
-  lat_m =   463.056  /( KV);
-  lng_m =   470.095 / (KO);
-
-  wp.latitude = convGPS(h_lat_off,h_lng_off,lat_m, true);
-  wp.longitude = convGPS(h_lat_off,h_lng_off,lng_m, false);
-
-  ROS_INFO("home wp lat %f , %f  and wp in km %f , %f \n", wp.latitude, wp.longitude, lat_m, lng_m);
-
-*/
   wp_pub.publish(msg);
 
 
@@ -264,7 +291,7 @@ using namespace mygeolib_tool;
  if(ready2odomi == 0) {
 
  ROS_INFO("Subscribing Sensor Packet lat [%f] long [%f]", spacket->h_latit , spacket->h_longit);
- pub = true;
+ //pub = true;
  ready2odomi = 1;
  
  }
@@ -288,7 +315,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
       double origin_lat;
       double origin_lng;
 
-      // ROS_INFO("sgn lat %f lng %f",sgn_lat,sgn_lng);
+    // ROS_INFO("sgn lat %f lng %f",sgn_lat,sgn_lng);
     // put map origin according to the goal position
     // if it s 1 quad
     origin_lat = convGPS(BB_home_lat, BB_home_lng, -1*sgn_lat*paddingy,true);
@@ -316,11 +343,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
 					poly.push_back(Point(distpointx, distpointy));
 					
-					// //if(distpointx < paddingx || distpointy < paddingy );
-					// 	ROS_INFO("Height: %f, Points are in m x %f y %f and gps %f %f home is %f %f, map dimensions: %d %d", height,
-					// 	distpointx, distpointy,opendata->data[j].area.points[i].x,opendata->data[j].area.points[i].y,origin_lat,origin_lng,
-					// 	map_width,map_height);
-		  			
+					
 	  			}
 	  			else // draw poly
 	  			{
@@ -331,9 +354,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 					int numberOfPoints = (int)tmp.size();
 					fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
 					polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
-					/*
-					for(int k=0; k < numberOfPoints;k++)
-						circle(mappa,poly[k],2,127,-1);*/
+				
 					   }
 
             if(attributes_key.compare("alberate") == 0){
@@ -354,9 +375,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
               int numberOfPoints = (int)tmp.size();
               fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
               polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
-              /*
-              for(int k=0; k < numberOfPoints;k++)
-                circle(mappa,poly[k],2,127,-1);*/
+
                }
 
                if(attributes_key.compare("alberate") == 0){
@@ -382,7 +401,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
   {
 
   // add LTE signal
-//
+  //
   Mat map_lte = cv::Mat(Size(mappa.cols - paddingx*2,mappa.rows - paddingy*2),CV_8UC1); // same as cropped map
   map_lte.setTo(255);
 
@@ -401,7 +420,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
   double lte_threshold = -80;
 
-  ifstream myfile ("/home/sgabello/catkin_ws/src/pubstartgoal/src/lte_crowd.txt");
+  ifstream myfile ("/home/sgabello/catkin_ws/src/pubstartgoal/src/lte_crowd.txt"); // LTE in crowd sourcing- loaded so far locally. Further implemetations will access to an external database
   if (myfile.is_open())
   {
     while ( getline (myfile,line) )
@@ -413,8 +432,6 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
       for(int i=0; i< 11; i++){
       getline( liness, temp, ';' );
-
-      //fields.push_back(temp);
 
       if(i == 1) lat_read.push_back(atof(temp.c_str()));
       if(i == 2) lng_read.push_back(atof(temp.c_str()));
@@ -499,53 +516,14 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
   }
 }
 
+};
+
 int main(int argc, char **argv)
 {
 
-  ros::init(argc, argv, "publisher_goal_and_start");
-   
-  int i = 0;
-  
-  
- 
-  ros::NodeHandle n;
-
-  goal_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 2,false);
-  start_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/start", 2,false);
-  wp_pub    = n.advertise<mission_planner_msgs::CoordinateArray>("/waypoints", 2,false);
-  map_pub = n.advertise< nav_msgs::OccupancyGrid>("/map", 1,false);
-
-
-  ros::Subscriber goal_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/gui_waypoints", 100, subGoal);
-  ros::Subscriber start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, subStart);
-  ros::Subscriber wp_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/2mp_wp", 1, subWp);
-  ros::Subscriber od = n.subscribe<open_data_msg::Data>("/opendata", 100, subOd);
-  
-  ros::Rate loop_rate(10);
- 
-  
-
-  //goal
-  goal.header.frame_id = 'g';
- 
-  
-  start.header.frame_id = 's';
-  
-  
-//&& i <= 1
-  while(ros::ok()){
-  
-  if (pub == true){
-
-  pub = false;
-  ROS_INFO("...\n" );
-  }
-
-  ros::spinOnce();
-  loop_rate.sleep();
-
-  }
-
+  ros::init(argc, argv, "Interface for ODOMI");
+  PubStartGoal psg;
+  ros::spin();
 
   return 0;
 }
