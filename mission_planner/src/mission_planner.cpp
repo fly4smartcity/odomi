@@ -348,7 +348,10 @@ class MissionPlanner
 private:
 
     ros::NodeHandle n;
+<<<<<<< HEAD
     ros::NodeHandle private_nh;
+=======
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
     ros::Publisher mission_pub, target_pub, waypoint_pub;
     ros::ServiceServer mission_service;
     ros::Timer timer;

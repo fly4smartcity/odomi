@@ -8,8 +8,14 @@
 #include <mission_planner_msgs/CoordinateArray.h>
 #include <mission_planner_msgs/SensorPacket.h>
 #include <ctime>
+<<<<<<< HEAD
 
 #include <float.h>
+=======
+#include <math.h>
+#include <float.h>
+#include "mygeolib.h"
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 #include "open_data_msg/BoundingBox.h"
 #include "open_data_msg/Data.h"
 #include <cstdlib>
@@ -21,13 +27,17 @@
 #include <math.h>
 #include <string.h>
 #include <fstream>
+<<<<<<< HEAD
 
 #include "/home/sgabello/catkin_ws/src/odomi_path_planner/src/mygeolib.h"
+=======
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 //#include <pcl_conversions/pcl_conversions.h>
 //#include <pcl/point_cloud.h>
 //#include <pcl/point_types.h>
 
 
+<<<<<<< HEAD
 using namespace cv;
 using namespace std;
 using namespace mygeolib_tool;
@@ -117,6 +127,48 @@ public:
   };
 
  
+=======
+
+#define pi 3.14159265358979323846
+
+using namespace cv;
+using namespace std;
+
+ geometry_msgs::PoseStamped goal;
+ geometry_msgs::PoseStamped start;
+ 
+ ros::Publisher goal_pub;
+ ros::Publisher start_pub;
+ ros::Publisher wp_pub;
+ ros::Publisher map_pub;
+
+
+ cv::Mat mappa;
+ Mat crop ;
+
+ int map_width;
+ int map_height;
+
+ double home_lat, goal_lat;
+ double home_lng, goal_lng;
+
+ double sgn_lat ; // sgn is 1 or -1
+ double sgn_lng ;
+
+ int paddingx = 200; // multiple of 4 !!!
+ int paddingy = 200;
+
+
+ int ready2odomi = 0 ; 
+ bool pub = false;
+
+ float KV = 1.0706; // [px/m]
+ float KO = 1.06853; // [px/m]
+
+ typedef vector <Point> Polygon;
+
+
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
   void publishMap(Mat m) // publish to odomi_path_planner the map
   {
     
@@ -136,6 +188,7 @@ public:
       for(int i=0;i < m.cols;i++)
       {
 
+<<<<<<< HEAD
         if(m.at<unsigned char>(j,i)==10)
           map.push_back(10);  
         else
@@ -146,6 +199,9 @@ public:
           map.push_back(30);  
         else 
           if(m.at<unsigned char>(j,i)>100)
+=======
+        if(m.at<unsigned char>(j,i)>100)
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
           map.push_back(0);
         else
           map.push_back(100);
@@ -160,16 +216,27 @@ public:
   }
 
 
+<<<<<<< HEAD
   void callServiceOpendata(String lab) {   // call open data service  for the bounding box
 
   String whatcall = lab;
   
+=======
+  void callServiceOpendata(String lab) {
+
+  String whatcall = lab;
+  // call open data service  for the bounding box
+  ros::NodeHandle n;
+  ros::ServiceClient bbox_service = n.serviceClient<open_data_msg::BoundingBox>("bounding_box");
+
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
   open_data_msg::BoundingBox srv;
 
   srv.request.label = whatcall.c_str();
   srv.request.type  = 1;
   srv.request.bounding_box.points.resize(2);
 
+<<<<<<< HEAD
   srv.request.bounding_box.points[0].x = BB_goal_lng; 
   srv.request.bounding_box.points[0].y = BB_goal_lat;
   srv.request.bounding_box.points[1].x = BB_home_lng;
@@ -181,6 +248,21 @@ public:
   {
   if(srv.response.resp)
       ROS_INFO("Result: %s true called bbox %f %f %f %f",whatcall.c_str(), BB_goal_lat, BB_goal_lng, BB_home_lat, BB_home_lng);
+=======
+    
+
+  srv.request.bounding_box.points[0].x = goal_lng; 
+  srv.request.bounding_box.points[0].y = goal_lat;
+  srv.request.bounding_box.points[1].x = home_lng;
+  srv.request.bounding_box.points[1].y = home_lat;
+
+
+ // call service open data for buildings  
+  if (bbox_service.call(srv))
+  {
+  if(srv.response.resp)
+      ROS_INFO("Result: %s true called bbox %f %f %f %f",whatcall.c_str(), goal_lat, goal_lng, home_lat, home_lng);
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
   else          
      ROS_INFO("Result: false");
   }
@@ -203,6 +285,7 @@ public:
   goal_lat = wp->waypoint[s-1].latitude;
   goal_lng = wp->waypoint[s-1].longitude;
 
+<<<<<<< HEAD
   
   sgn_lat = (goal_lat - home_lat)/sqrt((goal_lat - home_lat)*(goal_lat - home_lat)); // sgn is 1 or -1 according to the quadrant 
   sgn_lng = (goal_lng - home_lng)/sqrt((goal_lng - home_lng)*(goal_lng - home_lng));
@@ -238,11 +321,35 @@ public:
   // ROS_INFO("Publishing target %f %f and home position %f %f \n",goal.pose.position.x, goal.pose.position.y, start.pose.position.x, start.pose.position.y );
    ROS_INFO("Distx %f disty %f DistxBB %f distyBB %f start_lat %f start_lng %f",distx,disty,distxBB,distyBB, start.pose.position.x,start.pose.position.y );
   //pub = true;
+=======
+  double disty = distance(home_lat,home_lng,goal_lat, home_lng,'K')*1000; // in m
+  double distx = distance(home_lat,home_lng,home_lat,goal_lng,'K')*1000;
+
+  map_width =  roundUp(distx , 4);
+  map_height = roundUp(disty , 4);
+
+  goal.pose.position.x = distx;  // px = m * px/m
+  goal.pose.position.y = disty;
+  
+  // create map px = m
+
+
+
+  mappa =  cv::Mat(Size(map_width + paddingy*2,map_height+ paddingy*2),CV_8UC1);
+  mappa.setTo(255);
+  
+  // ROS_INFO("Publishing target %f %f and home position %f %f \n",goal.pose.position.x, goal.pose.position.y, start.pose.position.x, start.pose.position.y );
+  // ROS_INFO("Distx %f disty %f start_lat %f start_lng %f",distx,disty, start.pose.position.x,start.pose.position.y );
+  pub = true;
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
 
   callServiceOpendata("alberate");
   callServiceOpendata("edifici");
+<<<<<<< HEAD
   //callServiceOpendata("idro");
+=======
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
   
 
   ready2odomi = 0;
@@ -268,14 +375,33 @@ public:
   lat_m = wayp->waypoint[i].latitude; //distance lat in m
   lng_m = wayp->waypoint[i].longitude; //distance lng in m
 
+<<<<<<< HEAD
   wp.latitude = convGPS(BB_home_lat,BB_home_lng,sgn_lat*lat_m, true);
   wp.longitude = convGPS(BB_home_lat,BB_home_lng,sgn_lng*lng_m, false);
+=======
+  wp.latitude = convGPS(home_lat,home_lng,sgn_lat*lat_m, true);
+  wp.longitude = convGPS(home_lat,home_lng,sgn_lng*lng_m, false);
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
   msg.waypoint.push_back(wp);
   ROS_INFO("publishing wp lat %f , %f  and wp in km %f , %f \n", wp.latitude, wp.longitude, lat_m, lng_m);
 
   }
 
+<<<<<<< HEAD
+=======
+  //mo provo con la home in px se diventa gps
+/*
+  lat_m =   463.056  /( KV);
+  lng_m =   470.095 / (KO);
+
+  wp.latitude = convGPS(h_lat_off,h_lng_off,lat_m, true);
+  wp.longitude = convGPS(h_lat_off,h_lng_off,lng_m, false);
+
+  ROS_INFO("home wp lat %f , %f  and wp in km %f , %f \n", wp.latitude, wp.longitude, lat_m, lng_m);
+
+*/
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
   wp_pub.publish(msg);
 
 
@@ -291,7 +417,11 @@ public:
  if(ready2odomi == 0) {
 
  ROS_INFO("Subscribing Sensor Packet lat [%f] long [%f]", spacket->h_latit , spacket->h_longit);
+<<<<<<< HEAD
  //pub = true;
+=======
+ pub = true;
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
  ready2odomi = 1;
  
  }
@@ -315,16 +445,31 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
       double origin_lat;
       double origin_lng;
 
+<<<<<<< HEAD
     // ROS_INFO("sgn lat %f lng %f",sgn_lat,sgn_lng);
     // put map origin according to the goal position
     // if it s 1 quad
     origin_lat = convGPS(BB_home_lat, BB_home_lng, -1*sgn_lat*paddingy,true);
     origin_lng = convGPS(BB_home_lat, BB_home_lng, -1*sgn_lng*paddingx,false);
+=======
+       sgn_lat = (goal_lat - home_lat)/sqrt((goal_lat - home_lat)*(goal_lat - home_lat)); // sgn is 1 or -1
+       sgn_lng = (goal_lng - home_lng)/sqrt((goal_lng - home_lng)*(goal_lng - home_lng));
+
+      // ROS_INFO("sgn lat %f lng %f",sgn_lat,sgn_lng);
+  // put map origin according to the goal position
+  // if it s 1 quad
+   origin_lat = convGPS(home_lat, home_lng, -1*sgn_lat*paddingy,true);
+   origin_lng = convGPS(home_lat, home_lng, -1*sgn_lng*paddingx,false);
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 	
     String attributes_key = opendata->data[0].label.c_str();
     ROS_INFO("labels : %s", opendata->data[0].label.c_str());
     if(attributes_key.compare("edifici") ||  attributes_key.compare("alberate")){
+<<<<<<< HEAD
   	for(int j = 0; j < opendata->data.size(); j++) // for on opendata
+=======
+  	for(int j = 0; j < opendata->data.size(); j++) // for su opendata
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 	{ 
 
 
@@ -343,7 +488,15 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
 					poly.push_back(Point(distpointx, distpointy));
 					
+<<<<<<< HEAD
 					
+=======
+					// //if(distpointx < paddingx || distpointy < paddingy );
+					// 	ROS_INFO("Height: %f, Points are in m x %f y %f and gps %f %f home is %f %f, map dimensions: %d %d", height,
+					// 	distpointx, distpointy,opendata->data[j].area.points[i].x,opendata->data[j].area.points[i].y,origin_lat,origin_lng,
+					// 	map_width,map_height);
+		  			
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 	  			}
 	  			else // draw poly
 	  			{
@@ -354,14 +507,24 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 					int numberOfPoints = (int)tmp.size();
 					fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
 					polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
+<<<<<<< HEAD
 				
+=======
+					/*
+					for(int k=0; k < numberOfPoints;k++)
+						circle(mappa,poly[k],2,127,-1);*/
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 					   }
 
             if(attributes_key.compare("alberate") == 0){
 
               vector<Point> tmp = poly;
               const Point* elementPoints[1] = { &tmp[0] };
+<<<<<<< HEAD
               circle(mappa,poly[0],4,10,-1);
+=======
+              circle(mappa,poly[0],4,0,-1);
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
             }
 
 					poly.clear();
@@ -375,7 +538,13 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
               int numberOfPoints = (int)tmp.size();
               fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
               polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
+<<<<<<< HEAD
 
+=======
+              /*
+              for(int k=0; k < numberOfPoints;k++)
+                circle(mappa,poly[k],2,127,-1);*/
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
                }
 
                if(attributes_key.compare("alberate") == 0){
@@ -401,7 +570,11 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
   {
 
   // add LTE signal
+<<<<<<< HEAD
   //
+=======
+//
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
   Mat map_lte = cv::Mat(Size(mappa.cols - paddingx*2,mappa.rows - paddingy*2),CV_8UC1); // same as cropped map
   map_lte.setTo(255);
 
@@ -420,7 +593,11 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
   double lte_threshold = -80;
 
+<<<<<<< HEAD
   ifstream myfile ("/home/sgabello/catkin_ws/src/pubstartgoal/src/lte_crowd.txt"); // LTE in crowd sourcing- loaded so far locally. Further implemetations will access to an external database
+=======
+  ifstream myfile ("/home/sgabello/catkin_ws/src/pubstartgoal/src/lte_crowd.txt");
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
   if (myfile.is_open())
   {
     while ( getline (myfile,line) )
@@ -433,6 +610,11 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
       for(int i=0; i< 11; i++){
       getline( liness, temp, ';' );
 
+<<<<<<< HEAD
+=======
+      //fields.push_back(temp);
+
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
       if(i == 1) lat_read.push_back(atof(temp.c_str()));
       if(i == 2) lng_read.push_back(atof(temp.c_str()));
       if(i == 9) lte_signal.push_back(atof(temp.c_str()));
@@ -457,6 +639,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
   double min_lat, min_lng;
   double max_lat, max_lng;
 
+<<<<<<< HEAD
   if(BB_home_lat<BB_goal_lat)
   {
     min_lat=BB_home_lat;
@@ -488,6 +671,36 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
       double x = distance(BB_home_lat,BB_home_lng,BB_home_lat,lng_read[i],'K')*1000 ;   
                 
       circle(map_lte,Point(x,y),5,20,-1); //is preferrable to pass on this area
+=======
+  if(home_lat<goal_lat)
+  {
+    min_lat=home_lat;
+    max_lat=goal_lat;
+  }
+  else
+   {
+     min_lat=goal_lat;
+     max_lat= home_lat;
+   }
+  if(home_lng<goal_lng)
+  {
+    min_lng=home_lng;
+    max_lng=goal_lng;
+  }
+  else
+   {
+    min_lng=goal_lng;  
+    max_lng=home_lng;
+    }
+
+    if(lte_signal[i] <= lte_threshold  && lat_read[i] >= min_lat && lat_read[i] <= max_lat && lng_read[i] >= min_lng 
+          && lng_read[i] <= max_lng && !strcmp(typeSignal[i].c_str(),"LTE") ) { // gps read within the bbox and lte signal is less than threshold
+      
+      double y = distance(origin_lat,origin_lng,lat_read[i],origin_lng,'K')*1000 ; // in m reference to the origin
+      double x = distance(origin_lat,origin_lng,origin_lat,lng_read[i],'K')*1000 ;   
+                
+      circle(map_lte,Point(x,y),50,20,-1); //is preferrable to avoid this zone but if there's no chance ok
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
       miao++;
 
@@ -504,7 +717,11 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
       }
 
+<<<<<<< HEAD
       imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap_edifici_totale.pgm", mappa);
+=======
+      
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
     if(imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap_edifici.pgm", crop)) // save for visualization
     {
 		
@@ -516,6 +733,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
   }
 }
 
+<<<<<<< HEAD
 };
 
 int main(int argc, char **argv)
@@ -524,6 +742,55 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "Interface for ODOMI");
   PubStartGoal psg;
   ros::spin();
+=======
+int main(int argc, char **argv)
+{
+
+  ros::init(argc, argv, "publisher_goal_and_start");
+   
+  int i = 0;
+  
+  
+ 
+  ros::NodeHandle n;
+
+  goal_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 2,false);
+  start_pub = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/start", 2,false);
+  wp_pub    = n.advertise<mission_planner_msgs::CoordinateArray>("/waypoints", 2,false);
+  map_pub = n.advertise< nav_msgs::OccupancyGrid>("/map", 1,false);
+
+
+  ros::Subscriber goal_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/gui_waypoints", 100, subGoal);
+  ros::Subscriber start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, subStart);
+  ros::Subscriber wp_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/2mp_wp", 1, subWp);
+  ros::Subscriber od = n.subscribe<open_data_msg::Data>("/opendata", 100, subOd);
+  
+  ros::Rate loop_rate(10);
+ 
+  
+
+  //goal
+  goal.header.frame_id = 'g';
+ 
+  
+  start.header.frame_id = 's';
+  
+  
+//&& i <= 1
+  while(ros::ok()){
+  
+  if (pub == true){
+
+  pub = false;
+  ROS_INFO("...\n" );
+  }
+
+  ros::spinOnce();
+  loop_rate.sleep();
+
+  }
+
+>>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
   return 0;
 }
