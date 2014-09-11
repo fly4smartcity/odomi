@@ -7,7 +7,6 @@ find_package(OpenCV REQUIRED)
 
 catkin_package()
 
-<<<<<<< HEAD
 catkin_package(
    #INCLUDE_DIRS include
    LIBRARIES mygeolib.h 
@@ -20,9 +19,3 @@ catkin_package(
 add_executable(odomi_path_planner src/odomi_path_planner.cpp src/Dstar.cpp )
 target_link_libraries(odomi_path_planner ${catkin_LIBRARIES})
 
-=======
-add_executable(odomi_path_planner src/odomi_path_planner.cpp src/Dstar.cpp)
-target_link_libraries(odomi_path_planner ${catkin_LIBRARIES})
-
-
->>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf

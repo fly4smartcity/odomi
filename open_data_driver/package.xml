@@ -4,27 +4,16 @@
   <version>0.0.0</version>
   <description>The open_data_driver package</description>
 
-<<<<<<< HEAD
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="enrico@todo.todo">enrico</maintainer>
-=======
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="todo@todo.todo">todo</maintainer>
->>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-<<<<<<< HEAD
   <license>TODO</license>
-=======
-  <license>GPLv3</license>
->>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
 
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->

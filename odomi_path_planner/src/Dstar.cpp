@@ -13,13 +13,8 @@ int timesYouCallMe = 0 ;
  */
 Dstar::Dstar() {
 
-<<<<<<< HEAD
   maxSteps = 1000000; //80000;  // node expansions before we give up
   C1       = 500;      // cost of an unseen cell
-=======
-  maxSteps = 200000; //80000;  // node expansions before we give up
-  C1       = 1;      // cost of an unseen cell
->>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
 }
 
@@ -626,13 +621,8 @@ list<waypoint> Dstar::getWaypoints()
       wp.x=iter->x; wp.y=iter->y; wp.radius = distObstacles.at<float>(iter->y,iter->x);
       waypoints.push_back(wp);
 
-<<<<<<< HEAD
        //printf("Waypoint #%d, x: %d y: %d radius: %d\n ",waypoints.size(),wp.x,wp.y, wp.radius);
 	     //printf("times you call me %d\n ",timesYouCallMe);
-=======
-        printf("Waypoint #%d, x: %d y: %d radius: %d\n ",waypoints.size(),wp.x,wp.y, wp.radius);
-	printf("times you call me %d\n ",timesYouCallMe);
->>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
       int currx=iter->x;
       int curry=iter->y;
@@ -678,7 +668,6 @@ Mat Dstar::draw(int scale) {
   Scalar col;
   for(iter=cellHash.begin(); iter != cellHash.end(); iter++)
   {
-<<<<<<< HEAD
     // if (iter->second.cost == 1) col=Scalar(0,2,0);
     // else
     if (iter->second.cost ==-1 ) col=Scalar(0,0,255); // tree + building
@@ -690,15 +679,6 @@ Mat Dstar::draw(int scale) {
       if (iter->second.cost == 1) col=Scalar(255,0,0); //river
     else
       col=Scalar(0,0,0);
-=======
-    if (iter->second.cost == 1) col=Scalar(0,20,0);
-    else
-    	if (iter->second.cost ==-1 ) col=Scalar(0,0,255);
-    else
-    	if (iter->second.cost ==-2 ) col=Scalar(127,0,0);
-    else
-    	col=Scalar(255-iter->second.cost*100,0,0);
->>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
 
     float x = iter->first.x;
@@ -720,7 +700,6 @@ Mat Dstar::draw(int scale) {
   }
 
 
-<<<<<<< HEAD
 
   FILE *data=fopen("/home/sgabello/Pictures/fromDstar/waypoints.csv","w");
   // draw waypoints
@@ -732,15 +711,6 @@ Mat Dstar::draw(int scale) {
     }
 
     fclose(data);
-=======
-  // draw waypoints
-  list<waypoint>::iterator iter3;
-  for(iter3=waypoints.begin(); iter3 != waypoints.end(); iter3++)
-      circle(result,Point(iter3->x,iter3->y),iter3->radius,Scalar(100,50,50),2);
-
-
-
->>>>>>> 9ee2ed5823151f80049aa73bcf5d8c240b83eecf
 
   return result;
 }

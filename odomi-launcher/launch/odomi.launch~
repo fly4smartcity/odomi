@@ -10,14 +10,14 @@
  </node>
 
  <node pkg="odomi_path_planner" name="odomi_path_planner" type="odomi_path_planner">
-<param name="bounding_box_extension" type="double" value="10.0" />
+<param name="bounding_box_extension" type="double" value="200.0" />
  </node>
 
  <node pkg="open_data_driver" name="open_data_driver" type="open_data_driver">
  </node>
 
  <node pkg="pubstartgoal" name="pubstartgoal" type="pubstartgoal">
-  	<param name="bounding_box_extension" type="double" value="10.0" />
+  	<param name="bounding_box_extension" type="double" value="200.0" />
  </node>
 
  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
