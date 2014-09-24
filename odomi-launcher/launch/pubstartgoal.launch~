@@ -1,0 +1,4 @@
+ <node pkg="pubstartgoal" name="pubstartgoal" type="pubstartgoal">
+  	<param name="bounding_box_extension" type="double" value="200.0" />
+ </node>
+</launch>

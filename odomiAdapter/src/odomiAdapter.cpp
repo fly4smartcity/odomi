@@ -22,7 +22,9 @@
 #include <string.h>
 #include <fstream>
 
-#include "/home/sgabello/catkin_ws/src/odomi_path_planner/src/mygeolib.h"
+#include <odomi_path_planner/mygeolib.h>
+//#include "/home/sgabello/catkin_ws/src/odomi_path_planner/include/mygeolib.h"
+
 //#include <pcl_conversions/pcl_conversions.h>
 //#include <pcl/point_cloud.h>
 //#include <pcl/point_types.h>
@@ -32,7 +34,7 @@ using namespace cv;
 using namespace std;
 using namespace mygeolib_tool;
 
-class PubStartGoal
+class OdomiAdapter
 {
 private: 
 
@@ -73,18 +75,21 @@ public:
 
   double map_ext;
 
+  open_data_msg::BoundingBox srv; // service open data
+
   int paddingx; // multiple of 4 !!!
   int paddingy;
 
   int ready2odomi; 
 
-  PubStartGoal()
+  OdomiAdapter()
   {
 
   ready2odomi = 0 ; 
 
   ros::NodeHandle private_nh("~");
   private_nh.param("bounding_box_extension", map_ext, 200.00);
+  
 
   paddingx = map_ext; // multiple of 4 !!!
   paddingy = map_ext;
@@ -96,15 +101,15 @@ public:
   map_pub = n.advertise< nav_msgs::OccupancyGrid>("/map", 1,false);
 
 
-  goal_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/gui_waypoints", 100, &PubStartGoal::subGoal, this);
-  start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, &PubStartGoal::subStart, this);
-  wp_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/2mp_wp", 1, &PubStartGoal::subWp, this);
-  od = n.subscribe<open_data_msg::Data>("/opendata", 100, &PubStartGoal::subOd, this);
+  goal_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/gui_waypoints", 100, &OdomiAdapter::subGoal, this);
+  start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, &OdomiAdapter::subStart, this);
+  wp_mp = n.subscribe<mission_planner_msgs::CoordinateArray>("/2mp_wp", 1, &OdomiAdapter::subWp, this);
+  od = n.subscribe<open_data_msg::Data>("/opendata", 100, &OdomiAdapter::subOd, this);
 
 
   };
 
-  ~PubStartGoal(){
+  ~OdomiAdapter(){
 
   };
 
@@ -155,8 +160,6 @@ public:
   void callServiceOpendata(String lab) {   // call open data service  for the bounding box
 
   String whatcall = lab;
-  
-  open_data_msg::BoundingBox srv;
 
   srv.request.label = whatcall.c_str();
   srv.request.type  = 1;
@@ -171,10 +174,14 @@ public:
  // call service open data for buildings tree and rivers 
   if (bbox_service.call(srv))
   {
-  if(srv.response.resp)
+  if(srv.response.resp){
       ROS_INFO("Result: %s true called bbox %f %f %f %f",whatcall.c_str(), BB_goal_lat, BB_goal_lng, BB_home_lat, BB_home_lng);
-  else          
-     ROS_INFO("Result: false");
+      fprintf(stderr, "Result: %s true called bbox %f %f %f %f \n",whatcall.c_str(), BB_goal_lat, BB_goal_lng, BB_home_lat, BB_home_lng);
+    }
+  else {         
+     ROS_INFO("Result: false \n");
+     fprintf(stderr, "Result: false \n");
+    }
   }
   else
   {
@@ -234,7 +241,7 @@ public:
 
   callServiceOpendata("alberate");
   callServiceOpendata("edifici");
-  callServiceOpendata("idro");
+  //callServiceOpendata("idro");
   
 
   ready2odomi = 0;
@@ -303,9 +310,13 @@ public:
 
 void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data 
 {
+
+  if(opendata->data.size() > 0) // if the response at the desidered open data exists
+   {
     	int ind = 0 ;
       double origin_lat;
       double origin_lng;
+      Polygon poly;
 
     // ROS_INFO("sgn lat %f lng %f",sgn_lat,sgn_lng);
     // put map origin according to the goal position
@@ -314,8 +325,11 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
     origin_lng = convGPS(BB_home_lat, BB_home_lng, -1*sgn_lng*paddingx,false);
 	
     String attributes_key = opendata->data[0].label.c_str();
-    ROS_INFO("labels : %s", opendata->data[0].label.c_str());
-    if(attributes_key.compare("edifici") ||  attributes_key.compare("alberate")){
+    //ROS_INFO("labels : %s", opendata->data[0].label.c_str());
+        
+    printf("labels : %s", opendata->data[0].label.c_str());
+
+    if(attributes_key.compare("edifici") ||  attributes_key.compare("alberate") ||  attributes_key.compare("idro")){
   	for(int j = 0; j < opendata->data.size(); j++) // for on opendata
 	{ 
 
@@ -323,7 +337,8 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 		float height = atof(opendata->data[j].attributes[0].value.c_str());
 		if( height > 1.0 || attributes_key.compare("alberate") == 0 || attributes_key.compare("idro") == 0) // height>1 -> is not a street 
 		{
-			Polygon poly;
+			
+      
 
 		  	for (int i=0; i < opendata->data[j].area.points.size(); i++) // number of points into the polygon
 		  	{
@@ -356,6 +371,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
               circle(mappa,poly[0],4,10,-1);
             }
 
+          if(poly.size() > 0)
 					poly.clear();
 	  			}
 	  		}
@@ -376,18 +392,21 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
                 const Point* elementPoints[1] = { &tmp[0] };
                 circle(mappa,poly[0],4,0,-1);
               }      
- 
+      if(poly.size() > 0)
 			poly.clear();
 
 
 	  	 
 	  	}
+      
   	}
   }
 	
+  // if(poly.size() != 0)
+  // {
 	Rect roi(paddingx,paddingy,mappa.cols - paddingx*2,mappa.rows - paddingy*2);
   crop = mappa(roi).clone();
-
+  // }
 
 	if(attributes_key.compare("edifici") == 0 || attributes_key.compare("idro") == 0)
   {
@@ -412,7 +431,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
   double lte_threshold = -80;
 
-  ifstream myfile ("/home/sgabello/catkin_ws/src/pubstartgoal/src/lte_crowd.txt"); // LTE in crowd sourcing- loaded so far locally. Further implemetations will access to an external database
+  ifstream myfile ("/home/sgabello/catkin_ws/src/odomiAdapter/src/lte_crowd.txt"); // LTE in crowd sourcing- loaded so far locally. Further implemetations will access to an external database
   if (myfile.is_open())
   {
     while ( getline (myfile,line) )
@@ -488,7 +507,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
     }
       if(miao != 0) {
 
-      imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/lte_map.pgm", map_lte);
+      imwrite("/home/sgabello/catkin_ws/src/odomiAdapter/src/lte_map.pgm", map_lte);
       
       bitwise_and(map_lte, crop,crop);              
 
@@ -496,8 +515,8 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
       }
 
-      imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap_edifici_totale.pgm", mappa);
-    if(imwrite("/home/sgabello/catkin_ws/src/pubstartgoal/src/odomimap_edifici.pgm", crop)) // save for visualization
+      imwrite("/home/sgabello/catkin_ws/src/odomiAdapter/src/odomimap_edifici_totale.pgm", mappa);
+    if(imwrite("/home/sgabello/catkin_ws/src/odomiAdapter/src/odomimap_edifici.pgm", crop)) // save for visualization
     {
 		
 
@@ -506,6 +525,7 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 
     }
   }
+ }
 }
 
 };
@@ -513,8 +533,8 @@ void subOd(const open_data_msg::DataConstPtr& opendata) // subscribe open data
 int main(int argc, char **argv)
 {
 
-  ros::init(argc, argv, "Interface for ODOMI");
-  PubStartGoal psg;
+  ros::init(argc, argv, "Coordinator_for_ODOMI");
+  OdomiAdapter psg;
   ros::spin();
 
   return 0;

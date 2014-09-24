@@ -1,7 +1,11 @@
 
- #include "mygeolib.h"
+ #include <ros/ros.h>
+ //#include <odomi_path_planner/mygeolib.h>
 
 namespace mygeolib_tool {
+
+
+  const double pi = 3.14159265358979323846;
 
   /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
   /*::  This function converts decimal degrees to radians             :*/

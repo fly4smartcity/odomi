@@ -1,3 +1,7 @@
+// Inclusion guard to prevent this header from being included multiple times
+#ifndef __MYGEOLIB_H
+#define __MYGEOLIB_H
+
 #include <math.h>
 #include <string.h>
 #include <fstream>
@@ -7,7 +11,7 @@
 
 namespace mygeolib_tool {
 
-  const double pi = 3.14159265358979323846;
+
 
   /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
   /*::  This function converts decimal degrees to radians             :*/
@@ -31,3 +35,5 @@ namespace mygeolib_tool {
 	int roundUp(int numToRound, int multiple);
 
 };
+
+#endif

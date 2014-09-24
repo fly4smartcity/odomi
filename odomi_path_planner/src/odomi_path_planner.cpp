@@ -9,7 +9,6 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "mission_planner_msgs/CoordinateArray.h"
 #include "mission_planner_msgs/Coordinate.h"
-#include "mygeolib.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
@@ -18,12 +17,14 @@
 #include <unistd.h>
 #include "Dstar.h"
 
+#include <odomi_path_planner/mygeolib.h>
+
 using namespace cv;
 using namespace mygeolib_tool;
 
 // parameters
 int scale = 1;      // map scale (default 1 m/pixel)
-int inflation=1;    // obstacles inflation radius (default 1m, should be >= GPS accuracy)
+int inflation=2;    // obstacles inflation radius (default 1m, should be >= GPS accuracy)
 double map_ext;
 
 Dstar *dstar;
@@ -377,26 +378,6 @@ int main(int argc, char **argv) {
  namedWindow("ODOMI", 1);
 
 setMouseCallback("ODOMI", mouseFunc, NULL);
-//createTrackbar("inflation", "ODOMI", &inflation, 9);
-  // // init glut
-  // glutInit(&argc, argv);
-  // glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-  // glutInitWindowSize(800, 600);
-  // glutInitWindowPosition(20, 20);
-
-  // window = glutCreateWindow("Dstar Visualizer");
-
-  // glutDisplayFunc(&DrawGLScene);
-  // glutIdleFunc(&DrawGLScene);
-  // glutReshapeFunc(&ReSizeGLScene);
-  // glutKeyboardFunc(&keyPressed);
-  // glutMouseFunc(&mouseFunc);
-  // glutMotionFunc(&mouseMotionFunc);
-
-  // InitGL(800, 600);
-
-
-
 
   dstar = new Dstar();
   dstar->init(30,50,100, 90);
@@ -407,24 +388,6 @@ setMouseCallback("ODOMI", mouseFunc, NULL);
 
   // publish waypoints
   wp_pub = nh.advertise<mission_planner_msgs::CoordinateArray>("/2mp_wp", 2,true);
-												//dynamic map (sum of the two)
-
-  //loadLteObstacles("lte.jpg");
-  //loadBuildings("/home/stefano/ros_workspace/odomi_path_planner/salaD1.pgm");
-/*
-  printf("----------------------------------\n");
-  printf("ODOMI Path Planner\n");
-  printf("Commands:\n");
-  printf("[q/Q] - Quit\n");
-  printf("[r/R] - Replan\n");
-  printf("[a/A] - Toggle Auto Replan\n");
-  printf("[c/C] - Clear (restart)\n");
-  printf("left mouse click - make cell untraversable (cost -1)\n");
-  printf("middle mouse click - move goal to cell\n");
-  printf("right mouse click - move start to cell\n");
-  printf("----------------------------------\n");*/
-
-  //glutMainLoop();
 
  main_loop();
    //main_op();

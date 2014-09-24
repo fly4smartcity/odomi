@@ -1,22 +1,17 @@
-<launch>
-
+<launch> 
   <node pkg="drone" name="drone" type="drone" >
-  	<param name="latitude" type="double" value="45.062566" />
-  	<param name="longitude" type="double" value="7.663806" />
+  	<param name="latitude" type="double" value="45.054788" />
+  	<param name="longitude" type="double" value="7.685484" />
   	<param name="altitude" type="double" value="15.0" />
   </node>
 
  <node pkg="mission_planner" name="mission_planner" type="mission_planner">
  </node>
 
- <node pkg="odomi_path_planner" name="odomi_path_planner" type="odomi_path_planner">
-<param name="bounding_box_extension" type="double" value="200.0" />
- </node>
-
  <node pkg="open_data_driver" name="open_data_driver" type="open_data_driver">
  </node>
 
- <node pkg="odomiadapter" name="odomiAdapter" type="odomiAdapter">
+ <node pkg="see0d" name="see0d" type="see0d">
   	<param name="bounding_box_extension" type="double" value="200.0" />
  </node>
 

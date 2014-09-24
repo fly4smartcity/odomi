@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>pubstartgoal</name>
+  <name>see0d</name>
   <version>0.0.0</version>
-  <description>The pubstartgoal package</description>
+  <description>The see0d package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/pubstartgoal</url> -->
+  <!-- <url type="website">http://wiki.ros.org/see0d</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
@@ -46,19 +46,13 @@
   <build_depend>cv_bridge</build_depend>
   <build_depend>OpenCV</build_depend>
   <build_depend>opencv2</build_depend>
-  <build_depend>pcl_converions</build_depend>
-  <build_depend>pcl_ros</build_depend>
-  
+
   <run_depend>cv_bridge</run_depend>
-  <run_depend>OpenCV</run_depend>
   <run_depend>opencv2</run_depend>
+  <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
-  <run_depend>rospy</run_depend>
-<!--  <run_depend>pcl_converions</run_depend>
-  <run_depend>pcl_ros</run_depend>
-
-  <run_depend>std_msgs</run_depend>  -->
-
+  <run_depend>std_msgs</run_depend>
+  <run_depend>OpenCV</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
