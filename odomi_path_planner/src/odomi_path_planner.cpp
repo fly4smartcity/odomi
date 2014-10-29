@@ -24,7 +24,7 @@ using namespace mygeolib_tool;
 
 // parameters
 int scale = 1;      // map scale (default 1 m/pixel)
-int inflation=2;    // obstacles inflation radius (default 1m, should be >= GPS accuracy)
+int inflation=1;    // obstacles inflation radius (default 1m, should be >= GPS accuracy)
 double map_ext;
 
 Dstar *dstar;

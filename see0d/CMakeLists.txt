@@ -8,15 +8,28 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   OpenCV
   odomi_path_planner
+  message_generation
 )
 
+ add_message_files(
+  FILES
+  buildings.msg
+
+ )
+
+ generate_messages(
+   DEPENDENCIES
+   geometry_msgs
+  )
 
 find_package(OpenCV REQUIRED)
 find_package(roscpp REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(odomi_path_planner REQUIRED)
 
-catkin_package()
+catkin_package(
+INCLUDE_DIRS include
+)
 
 
 include_directories(

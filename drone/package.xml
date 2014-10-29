@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>drone</name>
+  <name>drone_parrot</name>
   <version>0.0.1</version>
   <description>The drone simulator package</description>
 

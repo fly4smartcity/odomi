@@ -1,7 +1,7 @@
 <launch> 
   <node pkg="drone" name="drone" type="drone" >
-  	<param name="latitude" type="double" value="45.054788" />
-  	<param name="longitude" type="double" value="7.685484" />
+  	<param name="latitude" type="double" value="45.062302" />
+  	<param name="longitude" type="double" value="7.662840" />
   	<param name="altitude" type="double" value="15.0" />
   </node>
 
@@ -12,7 +12,7 @@
  </node>
 
  <node pkg="see0d" name="see0d" type="see0d">
-  	<param name="bounding_box_extension" type="double" value="200.0" />
+  	<param name="bounding_box_extension" type="double" value="400.0" />
  </node>
 
  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />

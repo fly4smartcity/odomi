@@ -1,8 +1,8 @@
 <launch>
 
-  <node pkg="drone" name="drone" type="drone" >
-  	<param name="latitude" type="double" value="45.064784" />
-  	<param name="longitude" type="double" value="7.649222" />
+  <node pkg="drone_parrot" name="drone_parrot" type="drone_parrot" >
+  	<param name="latitude" type="double" value="45.066144" />
+  	<param name="longitude" type="double" value="7.661209" />
   	<param name="altitude" type="double" value="15.0" />
   </node>
 

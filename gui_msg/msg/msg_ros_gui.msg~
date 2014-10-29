@@ -1,9 +1,0 @@
-int8 batteryLevel
-int16 compass
-float64 variometer
-int16 altimeter
-float16 attitudePitch
-float16 attitudeRoll
-float64 GPS1drone
-float64 GPS2drone
-

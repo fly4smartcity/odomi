@@ -2,12 +2,14 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Header.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/Point32.h"
 #include "tf/transform_listener.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include <sstream>
 #include <mission_planner_msgs/CoordinateArray.h>
 #include <mission_planner_msgs/SensorPacket.h>
 #include <ctime>
+#include <see0d/buildings.h>
 
 #include <float.h>
 #include "open_data_msg/BoundingBox.h"
@@ -23,6 +25,9 @@
 #include <fstream>
 
 #include <odomi_path_planner/mygeolib.h>
+#include <ardrone_autonomy/Navdata.h>
+#include <ardrone_autonomy/navdata_gps.h>
+#include <geometry_msgs/PoseWithCovariance.h>
 
 using namespace cv;
 using namespace std;
@@ -34,10 +39,13 @@ private:
 
     ros::NodeHandle n;
     ros::Publisher map_pub;
-    ros::Subscriber visOD;
+    ros::Publisher edi_pub,tree_pub, camera;
+    ros::Subscriber visOD, parrotAdapter;
     ros::Subscriber start_mp;
 
     ros::ServiceClient bbox_service;
+
+
 
     cv::Mat mappa;
     Mat crop ;
@@ -61,9 +69,14 @@ private:
 public:
 
 
+  double origin_lat;
+  double origin_lng;
   double map_ext;
 
   open_data_msg::BoundingBox srv; // service open data
+  see0d::buildings buildings;
+
+  geometry_msgs::Polygon messageTree;
 
   int paddingx; // multiple of 4 !!!
   int paddingy;
@@ -81,14 +94,19 @@ public:
     //private_nh.param("bounding_box_extension", map_ext, 200.00);
     map_ext = 200;
 
-    paddingx = 50; // multiple of 4 !!!
-    paddingy = 50;
+    paddingx = 300; // multiple of 4 !!!
+    paddingy = 300;
 
 
-    visOD = n.subscribe<open_data_msg::Data>("/opendata", 100, &See0d::subODforVisualization, this);
+    //visOD = n.subscribe<open_data_msg::Data>("/opendata", 100, &See0d::subODforVisualization2D, this);
+    visOD = n.subscribe<open_data_msg::Data>("/opendata", 100, &See0d::subODforVisualization3D, this);
     start_mp = n.subscribe<mission_planner_msgs::SensorPacket>("/feedback", 1, &See0d::subDronePosition, this);
+    parrotAdapter = n.subscribe<ardrone_autonomy::navdata_gps>("simulated_parrot/navdata_gps", 1, &See0d::parrotAdapterCallBack, this);
     
     map_pub = n.advertise< nav_msgs::OccupancyGrid>("/map_seed", 1,true);
+    edi_pub = n.advertise<see0d::buildings>("/od_buildings_gui", 1,true);
+    tree_pub = n.advertise<geometry_msgs::Polygon>("/od_tree_gui", 1,true);
+    camera = n.advertise<geometry_msgs::PoseWithCovariance>("/camera", 1,true);
 
     bbox_service = n.serviceClient<open_data_msg::BoundingBox>("bounding_box");
 
@@ -98,19 +116,37 @@ public:
 
   ~See0d(){};
 
-    void subODforVisualization(const open_data_msg::DataConstPtr& opendata)
+void parrotAdapterCallBack(const ardrone_autonomy::navdata_gpsConstPtr& parrotGps){
+
+      geometry_msgs::PoseWithCovariance currentPosOfCamera;
+
+      double latitude = (double) parrotGps->latitude;
+      double longitude = (double) parrotGps->longitude;
+
+      double cameray = distance(origin_lat,origin_lng,latitude,origin_lng, 'K')*1000 ; // in m reference to the origin
+      double camerax = distance(origin_lat,origin_lng,origin_lat,longitude,'K')*1000  ;   
+
+      currentPosOfCamera.pose.position.x = camerax - 400;
+      currentPosOfCamera.pose.position.y = cameray - 400; 
+     currentPosOfCamera.pose.position.z = 40; 
+
+      currentPosOfCamera.pose.orientation.x = 70;
+      // currentPosOfCamera.pose.orientation.y = 3.14;
+
+      camera.publish(currentPosOfCamera);
+
+    }
+
+
+void subODforVisualization3D(const open_data_msg::DataConstPtr& opendata)
     {
 
     if(opendata->data.size() > 0) // if the response at the desidered open data exists
     {
         int ind = 0 ;
-        double origin_lat;
-        double origin_lng;
+
         Polygon poly;
 
-      // ROS_INFO("sgn lat %f lng %f",sgn_lat,sgn_lng);
-      // put map origin according to the goal position
-      // if it s 1 quad
       origin_lat = convGPS(BB_home_lat, BB_home_lng, -1*paddingy,true);
       origin_lng = convGPS(BB_home_lat, BB_home_lng, paddingx,false);
     
@@ -125,9 +161,9 @@ public:
 
 
     float height = atof(opendata->data[j].attributes[0].value.c_str());
-    if( height > 1 || attributes_key.compare("alberate") == 0 || attributes_key.compare("alberate") == 0 || attributes_key.compare("idro") == 0) 
+    if(height > 1.0|| attributes_key.compare("alberate") == 0 || attributes_key.compare("idro") == 0) 
     {
-      
+        geometry_msgs::Polygon messagePoly;
 
         for (int i=0; i < opendata->data[j].area.points.size(); i++) // number of points into the polygon
         {
@@ -139,7 +175,19 @@ public:
 
           poly.push_back(Point(distpointx, distpointy));
           
+          geometry_msgs::Point32 messagePoint;
+
+          messagePoint.x = distpointx;
+          messagePoint.y = distpointy;
+          messagePoint.z = height;
+
+          if(attributes_key.compare("edifici") == 0)
+            messagePoly.points.push_back(messagePoint);
           
+          if(attributes_key.compare("alberate") == 0)
+            messageTree.points.push_back(messagePoint);
+
+
           }
           else // draw poly
           {
@@ -150,7 +198,12 @@ public:
           int numberOfPoints = (int)tmp.size();
           fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
           polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
-        
+
+          //poly_pub.publish(messagePoly);
+          buildings.building.push_back(messagePoly);
+          
+          //fprintf(stderr,"phase 1) message polylines is %f %f %f at size %d\n",messagePoly.points[0].x,messagePoly.points[0].y,messagePoly.points[0].z,messagePoly.points.size());
+
              }
 
             if(attributes_key.compare("alberate") == 0){
@@ -166,12 +219,16 @@ public:
         }
               if(attributes_key.compare("edifici")  == 0 || attributes_key.compare("idro") == 0)
               {
-              
               vector<Point> tmp = poly;
               const Point* elementPoints[1] = { &tmp[0] };
               int numberOfPoints = (int)tmp.size();
               fillPoly (mappa, elementPoints, &numberOfPoints, 1, 0);
               polylines(mappa, elementPoints, &numberOfPoints, 1, 0, 0, 0, 1);
+
+              //poly_pub.publish(messagePoly);
+              buildings.building.push_back(messagePoly);
+
+              //fprintf(stderr,"phase 2) message polylines is %f %f %f at size %d\n",messagePoly.points[0].x,messagePoly.points[0].y,messagePoly.points[0].z,messagePoly.points.size());
 
                }
 
@@ -188,7 +245,9 @@ public:
       
     }
 
+    edi_pub.publish(buildings); //pub the whole msg with building polygons
 
+    tree_pub.publish(messageTree); //pub the whole msg with building polygons
   }
   
   // if(poly.size() != 0)
@@ -319,9 +378,7 @@ public:
   }
  }
 }
-
-
-    
+   
 
     void publishMap(Mat m) // publish to odomi_path_planner the map
     {
@@ -334,6 +391,8 @@ public:
       pubMap.header.frame_id = "map";
       pubMap.info.width = m.cols;
       pubMap.info.height = m.rows;
+      pubMap.info.resolution = 1;
+      pubMap.info.origin.orientation.w = 1;
 
 
       for(int j=m.rows;j > 0 ;j--)
@@ -400,9 +459,8 @@ public:
 
       ROS_INFO("BB_goal %f,%f BB_start %f,%f ", BB_home_lat , BB_home_lng, BB_goal_lat, BB_goal_lng);
 
-      callServiceOpendata("alberate");
       callServiceOpendata("edifici");
-
+      callServiceOpendata("alberate");
         }
       }
     }
